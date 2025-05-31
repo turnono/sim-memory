@@ -12,30 +12,6 @@ dev:
 frontend-do:
 	cd frontend && npm start
 
-test-agent:
-	@echo "[Agent Test] Testing the agent configuration..."
-	python -c "from sim_guide.agent import root_agent, session_service, runner; print(f'✅ Agent {root_agent.name} configured with VertexAI session service')"
-
-# Evaluation commands
-eval-all:
-	@echo "[Eval All] Running complete evaluation suite..."
-	python evals/run_all_evals.py
-
-eval-session:
-	@echo "[Eval Session] Running session functionality tests..."
-	python evals/session_evals.py
-
-eval-agent:
-	@echo "[Eval Agent] Running agent behavior tests..."
-	python evals/agent_evals.py
-
-eval-performance:
-	@echo "[Eval Performance] Running performance tests..."
-	python evals/performance_evals.py
-
-eval-quick:
-	@echo "[Eval Quick] Running quick session test..."
-	python -c "import asyncio; from sim_guide.session_service import health_check; print('✅ Passed' if asyncio.run(health_check()) else '❌ Failed')"
 
 # production build and deploy
 
@@ -68,3 +44,92 @@ delete:
 test-session:
 	@echo "[Test] Testing session service health..."
 	python -c "from sim_guide.agent import root_agent; print('✅ Agent and session service configured correctly')"
+
+test-agent:
+	@echo "[Agent Test] Testing the agent configuration..."
+	python -c "from sim_guide.agent import root_agent, session_service, runner; print(f'✅ Agent {root_agent.name} configured with VertexAI session service')"
+
+# Evaluation commands
+eval-all:
+	@echo "[Eval All] Running complete evaluation suite..."
+	python evals/run_all_evals.py
+
+eval-session:
+	@echo "[Eval Session] Running session functionality tests..."
+	python evals/session_evals.py
+
+eval-agent:
+	@echo "[Eval Agent] Running agent behavior tests..."
+	python evals/agent_evals.py
+
+eval-performance:
+	@echo "[Eval Performance] Running performance tests..."
+	python evals/performance_evals.py
+
+eval-quick:
+	@echo "[Eval Quick] Running quick session test..."
+	python -c "import asyncio; from sim_guide.session_service import health_check; print('✅ Passed' if asyncio.run(health_check()) else '❌ Failed')"
+
+# Documentation and URLs
+docs:
+	@echo "[Documentation] Opening project documentation..."
+	@echo "📚 Available Documentation:"
+	@echo "   - README.md - Complete project documentation"
+	@echo "   - VERTEX_AI_SETUP.md - Setup and deployment guide"
+	@echo "   - DEPLOYMENT_GUIDE.md - Deployment verification record"
+	@echo ""
+	@echo "🌐 Deployed Service URLs:"
+	@echo "   - API Docs: https://sim-guide-agent-service-855515190257.us-central1.run.app/docs"
+	@echo "   - Web UI: https://sim-guide-agent-service-855515190257.us-central1.run.app/dev-ui"
+	@echo "   - Base URL: https://sim-guide-agent-service-855515190257.us-central1.run.app"
+
+open-docs:
+	@echo "[Opening] API Documentation in browser..."
+	open https://sim-guide-agent-service-855515190257.us-central1.run.app/docs
+
+open-ui:
+	@echo "[Opening] Web UI in browser..."
+	open https://sim-guide-agent-service-855515190257.us-central1.run.app/dev-ui
+
+# Service verification
+verify-deployment:
+	@echo "[Verify] Testing deployed service..."
+	@echo "🔍 Checking API documentation..."
+	@curl -s -o /dev/null -w "Status: %{http_code}\n" https://sim-guide-agent-service-855515190257.us-central1.run.app/docs
+	@echo "🔍 Checking Web UI..."
+	@curl -s -o /dev/null -w "Status: %{http_code}\n" https://sim-guide-agent-service-855515190257.us-central1.run.app/dev-ui
+	@echo "✅ Deployment verification complete"
+
+test-session-api:
+	@echo "[Test] Creating test session via API..."
+	@curl -X POST "https://sim-guide-agent-service-855515190257.us-central1.run.app/apps/sim-guide/users/test-user/sessions" \
+		-H "Content-Type: application/json" -d '{}' -s | python -m json.tool
+
+# Help command
+help:
+	@echo "🚀 Sim-Guide Agent Makefile Commands"
+	@echo ""
+	@echo "📖 Documentation:"
+	@echo "   make docs              - Show documentation and service URLs"
+	@echo "   make open-docs         - Open API documentation in browser"
+	@echo "   make open-ui           - Open Web UI in browser"
+	@echo ""
+	@echo "🧪 Testing:"
+	@echo "   make test-agent        - Test agent configuration"
+	@echo "   make test-session      - Test session service"
+	@echo "   make test-session-api  - Test deployed API session creation"
+	@echo "   make verify-deployment - Verify deployed service health"
+	@echo "   make eval-quick        - Quick health check"
+	@echo "   make eval-all          - Complete evaluation suite"
+	@echo ""
+	@echo "🚢 Deployment:"
+	@echo "   make deploy            - Deploy with managed session service + UI"
+	@echo "   make delete            - Delete deployed service"
+	@echo ""
+	@echo "💻 Development:"
+	@echo "   make dev               - Start local development server"
+	@echo "   make firestore-emulator- Start Firestore emulator"
+	@echo ""
+	@echo "🌐 Live Service:"
+	@echo "   API: https://sim-guide-agent-service-855515190257.us-central1.run.app"
+	@echo "   UI:  https://sim-guide-agent-service-855515190257.us-central1.run.app/dev-ui"
