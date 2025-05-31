@@ -44,19 +44,20 @@ deploy-frontend:
 
 # Deploy the agent service to Google Cloud Run
 deploy:
-	gcloud run deploy ${AGENT_SERVICE_NAME} \
-	--source . \
-	--region ${GOOGLE_CLOUD_LOCATION} \
-	--project ${GOOGLE_CLOUD_PROJECT} \
-	--allow-unauthenticated \
-	--port 8080 \
-	--service-account ${AGENT_SERVICE_ACCOUNT} \
-	--set-env-vars="GOOGLE_CLOUD_PROJECT=${GOOGLE_CLOUD_PROJECT},\
-GOOGLE_CLOUD_LOCATION=${GOOGLE_CLOUD_LOCATION},\
-GOOGLE_GENAI_USE_VERTEXAI=${GOOGLE_GENAI_USE_VERTEXAI},\
-GOOGLE_API_KEY=${GOOGLE_API_KEY},\
-ENV=${ENV},\
-DEPLOYED_CLOUD_SERVICE_URL=${DEPLOYED_CLOUD_SERVICE_URL}"
+	@echo "[Deploy with UI + Managed] Deploying agent with UI and managed session service..."
+	@if [ -z "${REASONING_ENGINE_ID}" ]; then \
+		echo "❌ Error: REASONING_ENGINE_ID environment variable is not set."; \
+		echo "Set it in your .env file or export it: export REASONING_ENGINE_ID=your-agent-engine-resource-id"; \
+		exit 1; \
+	fi
+	adk deploy cloud_run \
+	--project=${GOOGLE_CLOUD_PROJECT} \
+	--region=${GOOGLE_CLOUD_LOCATION} \
+	--service_name=${AGENT_SERVICE_NAME} \
+	--app_name=sim-guide \
+	--session_db_url=agentengine://${REASONING_ENGINE_ID} \
+	--with_ui \
+	./sim_guide
 
 # Delete the agent service from Google Cloud Run
 delete:
