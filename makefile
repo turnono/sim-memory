@@ -12,23 +12,9 @@ dev:
 frontend-do:
 	cd frontend && npm start
 
-# VertexAI Agent Engine commands
-test-vertexai:
-	@echo "[VertexAI Test] Testing VertexAI integration setup..."
-	python test_vertex_ai.py
-
-deploy-agent:
-	@echo "[Agent Deploy] Deploying agent to Vertex AI Agent Engine..."
-	python deploy_agent.py
-
 test-agent:
 	@echo "[Agent Test] Testing the agent configuration..."
 	python -c "from sim_guide.agent import root_agent, session_service, runner; print(f'✅ Agent {root_agent.name} configured with VertexAI session service')"
-
-# Install dependencies for VertexAI
-install-vertexai:
-	@echo "[Install] Installing VertexAI dependencies..."
-	pip install -r requirements.txt
 
 # Evaluation commands
 eval-all:
@@ -76,11 +62,6 @@ DEPLOYED_CLOUD_SERVICE_URL=${DEPLOYED_CLOUD_SERVICE_URL}"
 delete:
 	gcloud run services delete ${AGENT_SERVICE_NAME} \
 	--region ${GOOGLE_CLOUD_LOCATION}
-
-# ADK Web Server
-run-web:
-	@echo "[ADK Web] Starting ADK web server..."
-	adk web
 
 # Test the session service health
 test-session:
