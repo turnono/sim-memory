@@ -20,6 +20,7 @@ sys.path.insert(0, str(project_root))
 from evals.session_evals import run_session_evals
 from evals.agent_evals import run_agent_evals
 from evals.performance_evals import run_performance_evals
+from evals.callback_evals import run_callback_evaluations
 
 class EvaluationReport:
     """Generates comprehensive evaluation reports."""
@@ -146,6 +147,21 @@ class EvaluationReport:
                 print(f"   Average Quality Score: {avg_quality:.2f}/1.0")
                 print(f"   Best Quality Score: {max(quality_scores):.2f}/1.0")
         
+        # Callback system metrics
+        if "callback_evals" in summary["suites"]:
+            print(f"\n🔗 Callback System Highlights:")
+            callback_results = self.results["callback_evals"]["results"]
+            for result in callback_results:
+                if result.get("metrics"):
+                    metrics = result["metrics"]
+                    test_name = result.get("test_name", "unknown")
+                    if "integration" in test_name:
+                        print(f"   {test_name}: {result.get('passed', False)} ✅" if result.get('passed') else f"   {test_name}: ❌")
+                    elif "duration" in str(metrics):
+                        for key, value in metrics.items():
+                            if isinstance(value, float) and "duration" in key:
+                                print(f"   {test_name} {key}: {value:.3f}s")
+        
         # Final verdict
         print(f"\n🎯 Final Verdict:")
         if overall["success_rate"] >= 0.95:
@@ -213,6 +229,7 @@ async def main():
     suites = [
         ("session_evals", run_session_evals),
         ("agent_evals", run_agent_evals),
+        ("callback_evals", run_callback_evaluations),
         ("performance_evals", run_performance_evals)
     ]
     

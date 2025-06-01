@@ -57,11 +57,11 @@ test-agent:
 # Evaluation commands
 eval-all:
 	@echo "[Eval All] Running complete evaluation suite..."
-	python evals/run_all_evals.py
+	PROJECT_ID=${GOOGLE_CLOUD_PROJECT} LOCATION=${GOOGLE_CLOUD_LOCATION} REASONING_ENGINE_ID=${REASONING_ENGINE_ID} python evals/run_all_evals.py
 
 eval-session:
 	@echo "[Eval Session] Running session functionality tests..."
-	python evals/session_evals.py
+	PROJECT_ID=${GOOGLE_CLOUD_PROJECT} LOCATION=${GOOGLE_CLOUD_LOCATION} REASONING_ENGINE_ID=${REASONING_ENGINE_ID} python evals/session_evals.py
 
 eval-rag:
 	@echo "[Eval RAG] Running RAG memory functionality tests..."
@@ -69,7 +69,11 @@ eval-rag:
 
 eval-agent:
 	@echo "[Eval Agent] Running agent behavior tests..."
-	python evals/agent_evals.py
+	PROJECT_ID=${GOOGLE_CLOUD_PROJECT} LOCATION=${GOOGLE_CLOUD_LOCATION} REASONING_ENGINE_ID=${REASONING_ENGINE_ID} python evals/agent_evals.py
+
+eval-callbacks:
+	@echo "[Eval Callbacks] Running callback system tests..."
+	PROJECT_ID=${GOOGLE_CLOUD_PROJECT} LOCATION=${GOOGLE_CLOUD_LOCATION} python evals/callback_evals.py
 
 eval-performance:
 	@echo "[Eval Performance] Running performance tests..."
@@ -148,6 +152,7 @@ help:
 	@echo "   make eval-session      - Session functionality tests"
 	@echo "   make eval-rag          - RAG memory functionality tests"
 	@echo "   make eval-agent        - Agent behavior tests"
+	@echo "   make eval-callbacks    - Callback system tests"
 	@echo "   make eval-performance  - Performance tests"
 	@echo ""
 	@echo "🚢 Deployment:"
