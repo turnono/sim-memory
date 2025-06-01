@@ -35,6 +35,15 @@ memory_uploader.py
 *_debug.py
 *_test.py
 
+# Evaluation reports and generated output
+evals/eval_report_*.json
+evals/*_results.json
+evals/*_output.txt
+evals/*_log.txt
+evals/results/
+evals/output/
+evals/logs/
+
 deployment/
 
 
