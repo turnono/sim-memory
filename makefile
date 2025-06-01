@@ -100,6 +100,20 @@ open-ui:
 	@echo "[Opening] Web UI in browser..."
 	open https://sim-guide-agent-service-855515190257.us-central1.run.app/dev-ui
 
+# Test deployed service with RAG capabilities
+test-deployed-rag:
+	@echo "[Test Deployed RAG] Testing deployed service with RAG Memory Service..."
+	@echo "🔍 Testing API endpoints availability..."
+	@curl -s -o /dev/null -w "API Docs Status: %{http_code}\n" https://sim-guide-agent-service-855515190257.us-central1.run.app/docs
+	@curl -s -o /dev/null -w "Web UI Status: %{http_code}\n" https://sim-guide-agent-service-855515190257.us-central1.run.app/dev-ui
+	@echo ""
+	@echo "🧪 Testing session creation..."
+	@curl -X POST "https://sim-guide-agent-service-855515190257.us-central1.run.app/apps/sim-guide/users/test-user/sessions" \
+		-H "Content-Type: application/json" -d '{}' -s | python -c "import sys,json; data=json.load(sys.stdin); print(f'✅ Session created: {data.get(\"id\", \"unknown\")}') if 'id' in data else print(f'❌ Session creation failed: {data}')"
+	@echo ""
+	@echo "💬 Testing agent interaction..."
+	@echo "Note: RAG Memory Service should be available in the deployed environment"
+
 # Service verification
 verify-deployment:
 	@echo "[Verify] Testing deployed service..."

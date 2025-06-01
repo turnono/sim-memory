@@ -41,7 +41,15 @@ logger.info(f"RAG Memory service initialized for project {PROJECT_ID}")
 RAG_DEFAULT_EMBEDDING_MODEL = "text-embedding-004"
 RAG_DEFAULT_TOP_K = 10
 RAG_DEFAULT_VECTOR_DISTANCE_THRESHOLD = 0.5
-RAG_BUCKET_PREFIX = "sim-memory-rag"
+
+# Use existing staging bucket instead of creating new ones
+RAG_STAGING_BUCKET = os.getenv("GOOGLE_CLOUD_STAGING_BUCKET", "gs://taajirah-adk-staging")
+if RAG_STAGING_BUCKET.startswith("gs://"):
+    RAG_BUCKET_NAME = RAG_STAGING_BUCKET[5:]  # Remove gs:// prefix
+else:
+    RAG_BUCKET_NAME = RAG_STAGING_BUCKET
+
+logger.info(f"Using existing staging bucket for RAG: {RAG_STAGING_BUCKET}")
 
 async def create_corpus(
     display_name: str,
@@ -200,55 +208,46 @@ async def delete_corpus(corpus_id: str) -> Dict[str, Any]:
 
 async def upload_document_to_gcs(
     file_content: bytes,
-    filename: str,
+    file_name: str,
     content_type: Optional[str] = None
 ) -> Dict[str, Any]:
     """
-    Upload a document to GCS for later import into RAG corpus.
+    Upload a document to the existing Google Cloud Storage staging bucket.
     
     Args:
-        file_content: The content of the file as bytes
-        filename: The name of the file
+        file_content: The file content as bytes
+        file_name: The name for the file
         content_type: MIME type of the file
         
     Returns:
-        Dict containing GCS URI and upload details
+        Dict containing upload status and GCS URI
     """
     try:
-        if content_type is None:
-            content_type, _ = mimetypes.guess_type(filename)
-            if content_type is None:
-                content_type = "application/octet-stream"
+        # Use existing staging bucket
+        bucket = _storage_client.bucket(RAG_BUCKET_NAME)
         
-        # Create bucket name with timestamp for uniqueness
-        bucket_name = f"{RAG_BUCKET_PREFIX}-{int(datetime.now().timestamp())}"
+        # Create a unique file path within the bucket
+        file_path = f"rag-documents/{file_name}"
+        blob = bucket.blob(file_path)
         
-        # Create bucket
-        bucket = _storage_client.bucket(bucket_name)
-        try:
-            bucket.create(location=LOCATION)
-            logger.info(f"Created GCS bucket: {bucket_name}")
-        except Exception as e:
-            if "already exists" not in str(e).lower():
-                raise e
-            logger.debug(f"Bucket {bucket_name} already exists")
+        # Set content type if provided
+        if content_type:
+            blob.content_type = content_type
+        elif file_name:
+            blob.content_type = mimetypes.guess_type(file_name)[0] or 'application/octet-stream'
         
-        # Upload file
-        blob_name = f"documents/{filename}"
-        blob = bucket.blob(blob_name)
-        blob.upload_from_string(file_content, content_type=content_type)
+        # Upload the file
+        blob.upload_from_string(file_content)
         
-        gcs_uri = f"gs://{bucket_name}/{blob_name}"
+        gcs_uri = f"gs://{RAG_BUCKET_NAME}/{file_path}"
         
-        logger.info(f"Uploaded document to GCS: {gcs_uri}")
+        logger.info(f"Document uploaded to existing staging bucket: {gcs_uri}")
         
         return {
             "status": "success",
             "gcs_uri": gcs_uri,
-            "bucket_name": bucket_name,
-            "blob_name": blob_name,
-            "filename": filename,
-            "content_type": content_type,
+            "bucket_name": RAG_BUCKET_NAME,
+            "file_path": file_path,
             "size_bytes": len(file_content)
         }
         
@@ -256,8 +255,7 @@ async def upload_document_to_gcs(
         logger.error(f"Failed to upload document to GCS: {e}")
         return {
             "status": "error",
-            "error_message": str(e),
-            "filename": filename
+            "error": str(e)
         }
 
 async def import_document_to_corpus(
@@ -527,7 +525,7 @@ Content:
         filename = f"memory_{user_id}_{session_id}_{int(datetime.now().timestamp())}.txt"
         upload_response = await upload_document_to_gcs(
             file_content=memory_text.encode('utf-8'),
-            filename=filename,
+            file_name=filename,
             content_type="text/plain"
         )
         

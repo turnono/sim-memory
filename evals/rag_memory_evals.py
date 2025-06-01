@@ -148,7 +148,7 @@ class RagMemoryEvals:
             # Test document upload to GCS
             upload_response = await upload_document_to_gcs(
                 file_content=test_content.encode('utf-8'),
-                filename="test_simulation_guide.txt",
+                file_name="test_simulation_guide.txt",
                 content_type="text/plain"
             )
             
@@ -233,7 +233,8 @@ class RagMemoryEvals:
             
             upload_response = await upload_document_to_gcs(
                 file_content=test_content.encode('utf-8'),
-                filename="simulation_config_guide.txt"
+                file_name="simulation_config_guide.txt",
+                content_type="text/plain"
             )
             
             assert upload_response["status"] == "success"
