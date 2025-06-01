@@ -45,6 +45,11 @@ test-session:
 	@echo "[Test] Testing session service health..."
 	python -c "from sim_guide.agent import root_agent; print('✅ Agent and session service configured correctly')"
 
+# Test the RAG memory service health
+test-rag:
+	@echo "[Test] Testing RAG memory service health..."
+	PROJECT_ID=${GOOGLE_CLOUD_PROJECT} LOCATION=${GOOGLE_CLOUD_LOCATION} python -c "import asyncio; from sim_guide.rag_memory_service import health_check; result = asyncio.run(health_check()); print('✅ RAG Memory Service healthy' if result.get('status') in ['healthy', 'degraded'] else '❌ RAG Memory Service failed'); print(f'Status: {result.get(\"status\")}, Duration: {result.get(\"duration_seconds\", 0):.2f}s')"
+
 test-agent:
 	@echo "[Agent Test] Testing the agent configuration..."
 	python -c "from sim_guide.agent import root_agent, session_service, runner; print(f'✅ Agent {root_agent.name} configured with VertexAI session service')"
@@ -57,6 +62,10 @@ eval-all:
 eval-session:
 	@echo "[Eval Session] Running session functionality tests..."
 	python evals/session_evals.py
+
+eval-rag:
+	@echo "[Eval RAG] Running RAG memory functionality tests..."
+	PROJECT_ID=${GOOGLE_CLOUD_PROJECT} LOCATION=${GOOGLE_CLOUD_LOCATION} python -m evals.rag_memory_evals
 
 eval-agent:
 	@echo "[Eval Agent] Running agent behavior tests..."
@@ -117,10 +126,15 @@ help:
 	@echo "🧪 Testing:"
 	@echo "   make test-agent        - Test agent configuration"
 	@echo "   make test-session      - Test session service"
+	@echo "   make test-rag          - Test RAG memory service"
 	@echo "   make test-session-api  - Test deployed API session creation"
 	@echo "   make verify-deployment - Verify deployed service health"
 	@echo "   make eval-quick        - Quick health check"
 	@echo "   make eval-all          - Complete evaluation suite"
+	@echo "   make eval-session      - Session functionality tests"
+	@echo "   make eval-rag          - RAG memory functionality tests"
+	@echo "   make eval-agent        - Agent behavior tests"
+	@echo "   make eval-performance  - Performance tests"
 	@echo ""
 	@echo "🚢 Deployment:"
 	@echo "   make deploy            - Deploy with managed session service + UI"
@@ -129,6 +143,11 @@ help:
 	@echo "💻 Development:"
 	@echo "   make dev               - Start local development server"
 	@echo "   make firestore-emulator- Start Firestore emulator"
+	@echo ""
+	@echo "🔗 Setup Guides:"
+	@echo "   📖 README.md          - Complete project documentation"
+	@echo "   📖 RAG_SETUP_GUIDE.md - RAG Memory Service setup"
+	@echo "   📖 VERTEX_AI_SETUP.md - VertexAI configuration"
 	@echo ""
 	@echo "🌐 Live Service:"
 	@echo "   API: https://sim-guide-agent-service-855515190257.us-central1.run.app"
