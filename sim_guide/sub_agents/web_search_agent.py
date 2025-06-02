@@ -46,14 +46,14 @@ When you receive a search request:
 - If no good results found, suggest alternative search approaches
 
 **Important**: Always search first before responding. Don't rely on your training data for current or time-sensitive information.""",
-    tools=[google_search]  # Uses Google's built-in search tool
+    tools=[google_search],  # Uses Google's built-in search tool
 )
 
 
 def get_web_search_agent():
     """
     Returns the web search agent for use as an AgentTool.
-    
+
     Returns:
         Agent: The configured web search agent with google_search tool
     """
@@ -61,4 +61,4 @@ def get_web_search_agent():
 
 
 # Export for use in main agent
-__all__ = ["web_search_agent", "get_web_search_agent"] 
+__all__ = ["web_search_agent", "get_web_search_agent"]
