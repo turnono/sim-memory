@@ -12,7 +12,6 @@ import vertexai
 from google.adk.sessions import VertexAiSessionService
 from google.adk.runners import Runner
 from google.genai import types
-from sim_guide.agent import root_agent
 
 # Set up logging
 logger = logging.getLogger(__name__)
@@ -22,8 +21,19 @@ PROJECT_ID = os.getenv("PROJECT_ID")
 LOCATION = os.getenv("LOCATION")
 REASONING_ENGINE_ID = os.getenv("REASONING_ENGINE_ID")
 
-if not all([PROJECT_ID, LOCATION, REASONING_ENGINE_ID]):
-    raise ValueError("PROJECT_ID, LOCATION, and REASONING_ENGINE_ID must be set")
+# Global instances - initialized lazily to avoid circular imports
+_vertex_session_service = None
+_runner = None
+
+def get_root_agent():
+    """Get root agent with lazy import to avoid circular dependencies"""
+    from sim_guide.agent import root_agent
+    return root_agent
+
+def _validate_environment():
+    """Validate environment variables when needed"""
+    if not all([PROJECT_ID, LOCATION, REASONING_ENGINE_ID]):
+        raise ValueError("PROJECT_ID, LOCATION, and REASONING_ENGINE_ID must be set")
 
 # Clean up any quotes from environment variables
 REASONING_ENGINE_ID = REASONING_ENGINE_ID.strip('"\'')
@@ -31,20 +41,29 @@ REASONING_ENGINE_ID = REASONING_ENGINE_ID.strip('"\'')
 # Set up service account authentication
 os.environ.setdefault("GOOGLE_APPLICATION_CREDENTIALS", "./taajirah-agents-service-account.json")
 
-# Initialize Vertex AI
-vertexai.init(project=PROJECT_ID, location=LOCATION)
+# Initialize Vertex AI lazily
+def _get_vertex_session_service():
+    """Get Vertex AI session service with lazy initialization"""
+    global _vertex_session_service
+    if _vertex_session_service is None:
+        _validate_environment()
+        vertexai.init(project=PROJECT_ID, location=LOCATION)
+        _vertex_session_service = VertexAiSessionService()
+    return _vertex_session_service
 
-# Global instances - initialized once
-_vertex_session_service = VertexAiSessionService(
-    project=PROJECT_ID,
-    location=LOCATION
-)
-
-_runner = Runner(
-    agent=root_agent,
-    app_name=REASONING_ENGINE_ID,
-    session_service=_vertex_session_service
-)
+# Initialize runner lazily  
+def _get_runner():
+    """Get runner with lazy initialization"""
+    global _runner
+    if _runner is None:
+        _validate_environment()
+        session_service = _get_vertex_session_service()  # Ensure vertex AI is initialized
+        _runner = Runner(
+            app_name=REASONING_ENGINE_ID,
+            agent=get_root_agent(),
+            session_service=session_service
+        )
+    return _runner
 
 logger.info(f"Session service initialized for project {PROJECT_ID}")
 
@@ -80,7 +99,7 @@ async def create_session(
         }
         
         # Create session via VertexAI
-        session = await _vertex_session_service.create_session(
+        session = await _get_vertex_session_service().create_session(
             app_name=REASONING_ENGINE_ID,
             user_id=user_id,
             state=session_state
@@ -113,21 +132,44 @@ async def get_session(user_id: str, session_id: str) -> Dict[str, Any]:
         Dict containing session information
     """
     try:
-        session = await _vertex_session_service.get_session(
+        session = await _get_vertex_session_service().get_session(
             app_name=REASONING_ENGINE_ID,
             user_id=user_id,
             session_id=session_id
         )
         
+        # Ensure state is a dictionary - handle both dict and string cases
+        if isinstance(session.state, dict):
+            state = session.state
+        elif isinstance(session.state, str):
+            # Try to parse as JSON if it's a string
+            try:
+                import json
+                state = json.loads(session.state)
+            except (json.JSONDecodeError, ValueError):
+                # If parsing fails, create minimal state
+                state = {
+                    "session_type": "unknown",
+                    "created_at": None,
+                    "conversation_count": 0
+                }
+        else:
+            # Fallback for other types
+            state = {
+                "session_type": "unknown", 
+                "created_at": None,
+                "conversation_count": 0
+            }
+        
         return {
             "session_id": session.id,
             "user_id": session.user_id,
             "app_name": session.app_name,
-            "state": session.state,
+            "state": state,  # Always return the processed state dict
             "last_update_time": session.last_update_time,
-            "created_at": session.state.get("created_at"),
-            "session_type": session.state.get("session_type", "unknown"),
-            "conversation_count": session.state.get("conversation_count", 0)
+            "created_at": state.get("created_at"),
+            "session_type": state.get("session_type", "unknown"),
+            "conversation_count": state.get("conversation_count", 0)
         }
         
     except Exception as e:
@@ -160,7 +202,7 @@ async def send_message(
         final_response = None
         start_time = datetime.now(timezone.utc)
         
-        async for event in _runner.run_async(
+        async for event in _get_runner().run_async(
             user_id=user_id,
             session_id=session_id,
             new_message=content
@@ -212,7 +254,7 @@ async def list_user_sessions(
         List of session IDs
     """
     try:
-        sessions_response = await _vertex_session_service.list_sessions(
+        sessions_response = await _get_vertex_session_service().list_sessions(
             app_name=REASONING_ENGINE_ID,
             user_id=user_id
         )
@@ -257,7 +299,7 @@ async def delete_session(user_id: str, session_id: str) -> bool:
         True if successful
     """
     try:
-        await _vertex_session_service.delete_session(
+        await _get_vertex_session_service().delete_session(
             app_name=REASONING_ENGINE_ID,
             user_id=user_id,
             session_id=session_id

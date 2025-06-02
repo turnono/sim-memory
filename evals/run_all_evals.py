@@ -21,6 +21,7 @@ from evals.session_evals import run_session_evals
 from evals.agent_evals import run_agent_evals
 from evals.performance_evals import run_performance_evals
 from evals.callback_evals import run_callback_evaluations
+from evals.preference_evals import run_preference_evaluations
 
 class EvaluationReport:
     """Generates comprehensive evaluation reports."""
@@ -162,6 +163,22 @@ class EvaluationReport:
                             if isinstance(value, float) and "duration" in key:
                                 print(f"   {test_name} {key}: {value:.3f}s")
         
+        # Preference system metrics
+        if "preference_evals" in summary["suites"]:
+            print(f"\n🎯 Preference System Highlights:")
+            pref_results = self.results["preference_evals"]["results"]
+            
+            # Extract preference detection metrics
+            for result in pref_results:
+                if result.get("test_name") == "preference_detection" and result.get("metrics"):
+                    detection_rate = result["metrics"].get("success_rate", 0)
+                    print(f"   Preference Detection Rate: {detection_rate:.1%}")
+                    
+                if result.get("test_name") == "preference_tools" and result.get("metrics"):
+                    tool_success = result["metrics"].get("tool_operations_passed", 0)
+                    tool_total = result["metrics"].get("total_tool_operations", 1)
+                    print(f"   Tool Operations Success: {tool_success}/{tool_total}")
+        
         # Final verdict
         print(f"\n🎯 Final Verdict:")
         if overall["success_rate"] >= 0.95:
@@ -230,6 +247,7 @@ async def main():
         ("session_evals", run_session_evals),
         ("agent_evals", run_agent_evals),
         ("callback_evals", run_callback_evaluations),
+        ("preference_evals", run_preference_evaluations),
         ("performance_evals", run_performance_evals)
     ]
     
@@ -261,6 +279,6 @@ if __name__ == "__main__":
     except KeyboardInterrupt:
         print("\n⏹️  Evaluation interrupted by user")
     except Exception as e:
-        print(f"\n💥 Evaluation failed: {e}")
+        print(f"\n�� Evaluation failed: {e}")
         import traceback
         traceback.print_exc() 

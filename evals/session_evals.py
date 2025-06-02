@@ -1,22 +1,29 @@
 #!/usr/bin/env python3
 """
 Session Service Evaluations
-Tests for session management functionality.
+Tests for session creation, management, and persistence.
 """
 
 import asyncio
 import logging
-import time
+import sys
+import os
+from pathlib import Path
 from typing import Dict, Any, List
-from datetime import datetime, timezone
+import time
 import uuid
+from datetime import datetime
+
+# Add project root to path
+project_root = Path(__file__).parent.parent
+sys.path.insert(0, str(project_root))
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 # Import session service functions directly
-from sim_guide.session_service import (
+from sim_guide.services.session_service import (
     create_session,
     send_message, 
     get_session,

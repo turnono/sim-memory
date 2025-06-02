@@ -23,19 +23,27 @@ logger = logging.getLogger(__name__)
 PROJECT_ID = os.getenv("PROJECT_ID")
 LOCATION = os.getenv("LOCATION")
 
-if not all([PROJECT_ID, LOCATION]):
-    raise ValueError("PROJECT_ID and LOCATION must be set")
+def _validate_environment():
+    """Validate environment variables when needed"""
+    if not all([PROJECT_ID, LOCATION]):
+        raise ValueError("PROJECT_ID and LOCATION must be set for RAG Memory Service")
 
 # Set up service account authentication
 os.environ.setdefault("GOOGLE_APPLICATION_CREDENTIALS", "./taajirah-agents-service-account.json")
 
-# Initialize Vertex AI
-vertexai.init(project=PROJECT_ID, location=LOCATION)
+# Initialize Vertex AI lazily
+def _init_vertexai():
+    """Initialize Vertex AI when needed"""
+    _validate_environment()
+    vertexai.init(project=PROJECT_ID, location=LOCATION)
 
-# Initialize GCS client for document uploads
-_storage_client = storage.Client(project=PROJECT_ID)
+# Initialize GCS client lazily  
+def _get_storage_client():
+    """Get storage client when needed"""
+    _validate_environment()
+    return storage.Client(project=PROJECT_ID)
 
-logger.info(f"RAG Memory service initialized for project {PROJECT_ID}")
+logger.info(f"RAG Memory service module loaded")
 
 # RAG Configuration
 RAG_DEFAULT_EMBEDDING_MODEL = "text-embedding-004"
@@ -68,6 +76,8 @@ async def create_corpus(
         Dict containing corpus details or error information
     """
     try:
+        _init_vertexai()  # Initialize when needed
+        
         if embedding_model is None:
             embedding_model = RAG_DEFAULT_EMBEDDING_MODEL
             
@@ -224,7 +234,7 @@ async def upload_document_to_gcs(
     """
     try:
         # Use existing staging bucket
-        bucket = _storage_client.bucket(RAG_BUCKET_NAME)
+        bucket = _get_storage_client().bucket(RAG_BUCKET_NAME)
         
         # Create a unique file path within the bucket
         file_path = f"rag-documents/{file_name}"

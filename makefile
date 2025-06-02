@@ -75,6 +75,10 @@ eval-callbacks:
 	@echo "[Eval Callbacks] Running callback system tests..."
 	PROJECT_ID=${GOOGLE_CLOUD_PROJECT} LOCATION=${GOOGLE_CLOUD_LOCATION} python evals/callback_evals.py
 
+eval-preferences:
+	@echo "[Eval Preferences] Running user preference system tests..."
+	python evals/preference_evals.py
+
 eval-performance:
 	@echo "[Eval Performance] Running performance tests..."
 	python evals/performance_evals.py
@@ -153,6 +157,7 @@ help:
 	@echo "   make eval-rag          - RAG memory functionality tests"
 	@echo "   make eval-agent        - Agent behavior tests"
 	@echo "   make eval-callbacks    - Callback system tests"
+	@echo "   make eval-preferences  - User preference system tests"
 	@echo "   make eval-performance  - Performance tests"
 	@echo ""
 	@echo "🚢 Deployment:"

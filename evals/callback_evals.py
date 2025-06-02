@@ -30,6 +30,7 @@ from sim_guide.callbacks import (
     before_model_callback, after_model_callback,
     before_tool_callback, after_tool_callback
 )
+from sim_guide.services.rag_memory_service import health_check, add_memory_from_conversation, retrieve_user_memories
 
 # Setup logging to capture callback messages
 logging.basicConfig(level=logging.INFO, format='%(name)s - %(levelname)s - %(message)s')
@@ -121,8 +122,8 @@ async def test_agent_callbacks():
         'passed': True,
         'duration': duration,
         'metrics': {
-            'processing_duration': context.state.get('last_processing_duration'),
-            'context_state_keys': list(context.state.keys())
+            'processing_duration': context.state.get('last_processing_duration') if isinstance(context.state, dict) else None,
+            'context_state_keys': list(context.state.keys()) if isinstance(context.state, dict) else []
         }
     }
 
@@ -167,8 +168,8 @@ async def test_model_callbacks():
         'passed': True,
         'duration': duration,
         'metrics': {
-            'model_duration': context.state.get('last_model_duration'),
-            'context_state_keys': list(context.state.keys())
+            'model_duration': context.state.get('last_model_duration') if isinstance(context.state, dict) else None,
+            'context_state_keys': list(context.state.keys()) if isinstance(context.state, dict) else []
         }
     }
 
@@ -212,8 +213,8 @@ async def test_tool_callbacks():
         'passed': True,
         'duration': duration,
         'metrics': {
-            'tool_duration': context.state.get(f'{tool.name}_last_duration'),
-            'context_state_keys': list(context.state.keys())
+            'tool_duration': context.state.get(f'{tool.name}_last_duration') if isinstance(context.state, dict) else None,
+            'context_state_keys': list(context.state.keys()) if isinstance(context.state, dict) else []
         }
     }
 
@@ -258,8 +259,6 @@ async def test_rag_memory_integration():
     print("🧠 Testing RAG Memory Integration through Callbacks")
     
     try:
-        from sim_guide.rag_memory_service import health_check, add_memory_from_conversation, retrieve_user_memories
-        
         # Test RAG health first
         health_result = await health_check()
         if health_result.get('status') != 'healthy':

@@ -25,7 +25,7 @@ project_root = Path(__file__).parent.parent
 sys.path.insert(0, str(project_root))
 
 # Import session service functions directly
-from sim_guide.session_service import (
+from sim_guide.services.session_service import (
     create_session,
     send_message,
     delete_session
@@ -49,61 +49,61 @@ class AgentBehaviorEvals:
         self.scenarios = self._create_scenarios()
     
     def _create_scenarios(self) -> List[EvalScenario]:
-        """Create evaluation scenarios for different simulation contexts."""
+        """Create evaluation scenarios for different life guidance contexts."""
         return [
             EvalScenario(
-                name="beginner_simulation_setup",
-                description="New user wants to start their first simulation",
+                name="young_career_guidance",
+                description="Young person needs help with career direction and starting their professional life",
                 user_queries=[
-                    "Hi, I'm new to simulations. Can you help me get started?",
-                    "What do I need to do first?",
-                    "I don't understand the interface. Can you guide me?"
+                    "Hi, I'm new to the working world. Can you help me get started with my career?",
+                    "What do I need to do first to build a successful career?",
+                    "I don't understand how to navigate the job market. Can you guide me?"
                 ],
-                expected_topics=["getting started", "basics", "first steps", "beginner"],
+                expected_topics=["career", "job", "professional", "skills", "networking", "goals"],
                 complexity_level="basic"
             ),
             EvalScenario(
-                name="advanced_parameter_tuning",
-                description="Experienced user wants to optimize simulation parameters",
+                name="relationship_optimization",
+                description="Experienced person wants to improve their relationships and social connections",
                 user_queries=[
-                    "I need to optimize my simulation parameters for better performance",
-                    "How can I tune the convergence criteria?",
-                    "What's the best approach for sensitivity analysis?"
+                    "I need to improve my relationships for better personal fulfillment",
+                    "How can I strengthen my connections with family and friends?",
+                    "What's the best approach for building meaningful relationships?"
                 ],
-                expected_topics=["parameters", "optimization", "tuning", "performance"],
+                expected_topics=["relationships", "family", "friends", "communication", "social"],
                 complexity_level="advanced"
             ),
             EvalScenario(
-                name="troubleshooting_errors",
-                description="User encountering simulation errors and needs help",
+                name="personal_growth_challenges",
+                description="User encountering obstacles in personal development and needs guidance",
                 user_queries=[
-                    "My simulation keeps failing with convergence issues",
-                    "I'm getting error messages I don't understand",
-                    "How do I debug simulation problems?"
+                    "I keep struggling with personal growth and self-improvement",
+                    "I'm facing challenges I don't know how to overcome",
+                    "How do I develop better habits and break bad patterns?"
                 ],
-                expected_topics=["troubleshooting", "errors", "debugging", "problems"],
+                expected_topics=["growth", "development", "habits", "challenges", "improvement"],
                 complexity_level="intermediate"
             ),
             EvalScenario(
-                name="results_analysis",
-                description="User needs help interpreting and analyzing results",
+                name="life_balance_analysis",
+                description="User needs help achieving work-life balance and overall wellness",
                 user_queries=[
-                    "How do I interpret these simulation results?",
-                    "What should I look for in the output data?",
-                    "Can you help me understand these graphs?"
+                    "How do I achieve better work-life balance?",
+                    "What should I focus on for overall life satisfaction?",
+                    "Can you help me understand how to prioritize different life areas?"
                 ],
-                expected_topics=["results", "analysis", "interpretation", "data"],
+                expected_topics=["balance", "wellness", "priorities", "health", "lifestyle"],
                 complexity_level="intermediate"
             ),
             EvalScenario(
-                name="workflow_optimization",
-                description="User wants to improve their simulation workflow",
+                name="life_optimization_workflow",
+                description="User wants to optimize their daily routines and life systems",
                 user_queries=[
-                    "How can I make my simulation workflow more efficient?",
-                    "What are the best practices for large-scale simulations?",
-                    "Can you suggest ways to automate my process?"
+                    "How can I make my daily life more efficient and fulfilling?",
+                    "What are the best practices for organizing my life effectively?",
+                    "Can you suggest ways to optimize my routines and habits?"
                 ],
-                expected_topics=["workflow", "efficiency", "automation", "best practices"],
+                expected_topics=["efficiency", "routines", "habits", "organization", "optimization"],
                 complexity_level="advanced"
             )
         ]
