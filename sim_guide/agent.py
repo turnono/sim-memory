@@ -12,6 +12,7 @@ from .prompts import PROMPT
 # Import the sub_agents
 from .sub_agents.memory_agent import memory_agent
 from .sub_agents.capability_enhancement_agent import capability_enhancement_agent
+from .sub_agents.web_search_agent import web_search_agent
 
 root_agent = Agent(
     name="sim_guide",
@@ -26,6 +27,7 @@ root_agent = Agent(
     tools=[
         AgentTool(agent=memory_agent),
         AgentTool(agent=capability_enhancement_agent),
+        AgentTool(agent=web_search_agent),
     ],
 )
 

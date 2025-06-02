@@ -67,6 +67,15 @@ eval-meta-cognitive-cost-optimized:
 	@echo "[Eval Meta-Cognitive - Cost Optimized] Running meta-cognitive evaluation with cost optimization..."
 	USE_EVAL_AGENT=true RAG_COST_OPTIMIZED=true python evals/meta_cognitive_evals.py
 
+# Test web search capabilities
+test-web-search:
+	@echo "[Test Web Search] Testing web search agent integration..."
+	python evals/web_search_evals.py
+
+eval-web-search:
+	@echo "[Eval Web Search] Running web search capabilities evaluation..."
+	python evals/web_search_evals.py
+
 # Evaluation commands
 eval-all:
 	@echo "[Eval All] Running complete evaluation suite..."
@@ -197,6 +206,7 @@ help:
 	@echo "   make test-session      - Test session service"
 	@echo "   make test-rag          - Test RAG memory service"
 	@echo "   make test-meta-cognitive - Test meta-cognitive capabilities"
+	@echo "   make test-web-search   - Test web search agent integration"
 	@echo "   make test-session-api  - Test deployed API session creation"
 	@echo "   make verify-deployment - Verify deployed service health"
 	@echo "   make eval-quick        - Quick health check"
@@ -206,6 +216,7 @@ help:
 	@echo "   make eval-session      - Session functionality tests"
 	@echo "   make eval-agent        - Agent behavior tests"
 	@echo "   make eval-meta-cognitive - Meta-cognitive capabilities tests"
+	@echo "   make eval-web-search   - Web search capabilities tests"
 	@echo "   make eval-performance  - Performance tests"
 	@echo "   make eval-callbacks    - Callback system tests"
 	@echo "   make eval-preferences  - User preference system tests"
