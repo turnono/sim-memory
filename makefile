@@ -59,9 +59,18 @@ eval-all:
 	@echo "[Eval All] Running complete evaluation suite..."
 	PROJECT_ID=${GOOGLE_CLOUD_PROJECT} LOCATION=${GOOGLE_CLOUD_LOCATION} REASONING_ENGINE_ID=${REASONING_ENGINE_ID} python evals/run_all_evals.py
 
+# Cost-optimized evaluations (80-90% cost reduction)
+eval-all-cost-optimized:
+	@echo "[Eval All - Cost Optimized] Running complete evaluation suite with cost optimization..."
+	USE_EVAL_AGENT=true RAG_COST_OPTIMIZED=true MAX_CORPORA_SEARCH=2 PROJECT_ID=${GOOGLE_CLOUD_PROJECT} LOCATION=${GOOGLE_CLOUD_LOCATION} REASONING_ENGINE_ID=${REASONING_ENGINE_ID} python evals/run_all_evals.py
+
 eval-session:
 	@echo "[Eval Session] Running session functionality tests..."
 	PROJECT_ID=${GOOGLE_CLOUD_PROJECT} LOCATION=${GOOGLE_CLOUD_LOCATION} REASONING_ENGINE_ID=${REASONING_ENGINE_ID} python evals/session_evals.py
+
+eval-session-cost-optimized:
+	@echo "[Eval Session - Cost Optimized] Running session functionality tests with cost optimization..."
+	USE_EVAL_AGENT=true RAG_COST_OPTIMIZED=true PROJECT_ID=${GOOGLE_CLOUD_PROJECT} LOCATION=${GOOGLE_CLOUD_LOCATION} REASONING_ENGINE_ID=${REASONING_ENGINE_ID} python evals/session_evals.py
 
 eval-rag:
 	@echo "[Eval RAG] Running RAG memory functionality tests..."
@@ -70,6 +79,10 @@ eval-rag:
 eval-agent:
 	@echo "[Eval Agent] Running agent behavior tests..."
 	PROJECT_ID=${GOOGLE_CLOUD_PROJECT} LOCATION=${GOOGLE_CLOUD_LOCATION} REASONING_ENGINE_ID=${REASONING_ENGINE_ID} python evals/agent_evals.py
+
+eval-agent-cost-optimized:
+	@echo "[Eval Agent - Cost Optimized] Running agent behavior tests with cost optimization..."
+	USE_EVAL_AGENT=true RAG_COST_OPTIMIZED=true PROJECT_ID=${GOOGLE_CLOUD_PROJECT} LOCATION=${GOOGLE_CLOUD_LOCATION} REASONING_ENGINE_ID=${REASONING_ENGINE_ID} python evals/agent_evals.py
 
 eval-callbacks:
 	@echo "[Eval Callbacks] Running callback system tests..."
@@ -83,9 +96,29 @@ eval-performance:
 	@echo "[Eval Performance] Running performance tests..."
 	python evals/performance_evals.py
 
+eval-performance-cost-optimized:
+	@echo "[Eval Performance - Cost Optimized] Running performance tests with cost optimization..."
+	USE_EVAL_AGENT=true RAG_COST_OPTIMIZED=true PROJECT_ID=${GOOGLE_CLOUD_PROJECT} LOCATION=${GOOGLE_CLOUD_LOCATION} REASONING_ENGINE_ID=${REASONING_ENGINE_ID} python evals/performance_evals.py
+
 eval-quick:
 	@echo "[Eval Quick] Running quick session test..."
 	python -c "import asyncio; from sim_guide.session_service import health_check; print('✅ Passed' if asyncio.run(health_check()) else '❌ Failed')"
+
+eval-callbacks-cost-optimized:
+	@echo "[Eval Callbacks - Cost Optimized] Running callback system tests with cost optimization..."
+	USE_EVAL_AGENT=true RAG_COST_OPTIMIZED=true PROJECT_ID=${GOOGLE_CLOUD_PROJECT} LOCATION=${GOOGLE_CLOUD_LOCATION} REASONING_ENGINE_ID=${REASONING_ENGINE_ID} python evals/callback_evals.py
+
+eval-rag-cost-optimized:
+	@echo "[Eval RAG - Cost Optimized] Running RAG memory tests with cost optimization..."
+	USE_EVAL_AGENT=true RAG_COST_OPTIMIZED=true MAX_CORPORA_SEARCH=1 PROJECT_ID=${GOOGLE_CLOUD_PROJECT} LOCATION=${GOOGLE_CLOUD_LOCATION} REASONING_ENGINE_ID=${REASONING_ENGINE_ID} python evals/rag_memory_evals.py
+
+eval-memory-subagent:
+	@echo "[Eval Memory Subagent] Testing memory subagent architecture..."
+	PROJECT_ID=${GOOGLE_CLOUD_PROJECT} LOCATION=${GOOGLE_CLOUD_LOCATION} REASONING_ENGINE_ID=${REASONING_ENGINE_ID} python evals/memory_subagent_evals.py
+
+eval-memory-subagent-cost-optimized:
+	@echo "[Eval Memory Subagent - Cost Optimized] Testing memory subagent with cost optimization..."
+	USE_EVAL_AGENT=true RAG_COST_OPTIMIZED=true MAX_CORPORA_SEARCH=1 PROJECT_ID=${GOOGLE_CLOUD_PROJECT} LOCATION=${GOOGLE_CLOUD_LOCATION} REASONING_ENGINE_ID=${REASONING_ENGINE_ID} python evals/memory_subagent_evals.py
 
 # Documentation and URLs
 docs:
@@ -152,13 +185,21 @@ help:
 	@echo "   make test-session-api  - Test deployed API session creation"
 	@echo "   make verify-deployment - Verify deployed service health"
 	@echo "   make eval-quick        - Quick health check"
+	@echo ""
+	@echo "🧪 Standard Evaluations (Higher Cost):"
 	@echo "   make eval-all          - Complete evaluation suite"
 	@echo "   make eval-session      - Session functionality tests"
-	@echo "   make eval-rag          - RAG memory functionality tests"
 	@echo "   make eval-agent        - Agent behavior tests"
+	@echo "   make eval-performance  - Performance tests"
 	@echo "   make eval-callbacks    - Callback system tests"
 	@echo "   make eval-preferences  - User preference system tests"
-	@echo "   make eval-performance  - Performance tests"
+	@echo "   make eval-rag          - RAG memory functionality tests"
+	@echo ""
+	@echo "💰 Cost-Optimized Evaluations (80-90% Cost Reduction):"
+	@echo "   make eval-all-cost-optimized      - Complete suite (no tools, minimal instruction)"
+	@echo "   make eval-session-cost-optimized  - Session tests (cost optimized)"
+	@echo "   make eval-agent-cost-optimized    - Agent tests (cost optimized)"
+	@echo "   make eval-performance-cost-optimized - Performance tests (cost optimized)"
 	@echo ""
 	@echo "🚢 Deployment:"
 	@echo "   make deploy            - Deploy with managed session service + UI"
