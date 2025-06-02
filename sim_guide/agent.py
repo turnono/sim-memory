@@ -11,6 +11,7 @@ from .prompts import PROMPT
 
 # Import the sub_agents
 from .sub_agents.memory_agent import memory_agent
+from .sub_agents.capability_enhancement_agent import capability_enhancement_agent
 
 root_agent = Agent(
     name="sim_guide",
@@ -22,7 +23,10 @@ root_agent = Agent(
     after_model_callback=after_model_callback,
     before_tool_callback=before_tool_callback,
     after_tool_callback=after_tool_callback,
-    tools=[AgentTool(agent=memory_agent)],
+    tools=[
+        AgentTool(agent=memory_agent),
+        AgentTool(agent=capability_enhancement_agent),
+    ],
 )
 
 # Cost-optimized agent for evaluations (no tools, minimal instruction)

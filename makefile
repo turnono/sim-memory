@@ -54,6 +54,19 @@ test-agent:
 	@echo "[Agent Test] Testing the agent configuration..."
 	python -c "from sim_guide.agent import root_agent, session_service, runner; print(f'✅ Agent {root_agent.name} configured with VertexAI session service')"
 
+# Test meta-cognitive capabilities
+test-meta-cognitive:
+	@echo "[Test Meta-Cognitive] Testing meta-cognitive capabilities..."
+	python evals/meta_cognitive_evals.py
+
+eval-meta-cognitive:
+	@echo "[Eval Meta-Cognitive] Running meta-cognitive capabilities evaluation..."
+	python evals/meta_cognitive_evals.py
+
+eval-meta-cognitive-cost-optimized:
+	@echo "[Eval Meta-Cognitive - Cost Optimized] Running meta-cognitive evaluation with cost optimization..."
+	USE_EVAL_AGENT=true RAG_COST_OPTIMIZED=true python evals/meta_cognitive_evals.py
+
 # Evaluation commands
 eval-all:
 	@echo "[Eval All] Running complete evaluation suite..."
@@ -127,6 +140,7 @@ docs:
 	@echo "   - README.md - Complete project documentation"
 	@echo "   - VERTEX_AI_SETUP.md - Setup and deployment guide"
 	@echo "   - DEPLOYMENT_GUIDE.md - Deployment verification record"
+	@echo "   - META_COGNITIVE_ARCHITECTURE.md - Meta-cognitive capabilities guide"
 	@echo ""
 	@echo "🌐 Deployed Service URLs:"
 	@echo "   - API Docs: https://sim-guide-agent-service-855515190257.us-central1.run.app/docs"
@@ -146,7 +160,7 @@ test-deployed-rag:
 	@echo "[Test Deployed RAG] Testing deployed service with RAG Memory Service..."
 	@echo "🔍 Testing API endpoints availability..."
 	@curl -s -o /dev/null -w "API Docs Status: %{http_code}\n" https://sim-guide-agent-service-855515190257.us-central1.run.app/docs
-	@curl -s -o /dev/null -w "Web UI Status: %{http_code}\n" https://sim-guide-agent-service-855515190257.us-central1.run.app/dev-ui
+	@curl -s -o /dev/null -w "Status: %{http_code}\n" https://sim-guide-agent-service-855515190257.us-central1.run.app/dev-ui
 	@echo ""
 	@echo "🧪 Testing session creation..."
 	@curl -X POST "https://sim-guide-agent-service-855515190257.us-central1.run.app/apps/sim-guide/users/test-user/sessions" \
@@ -182,6 +196,7 @@ help:
 	@echo "   make test-agent        - Test agent configuration"
 	@echo "   make test-session      - Test session service"
 	@echo "   make test-rag          - Test RAG memory service"
+	@echo "   make test-meta-cognitive - Test meta-cognitive capabilities"
 	@echo "   make test-session-api  - Test deployed API session creation"
 	@echo "   make verify-deployment - Verify deployed service health"
 	@echo "   make eval-quick        - Quick health check"
@@ -190,6 +205,7 @@ help:
 	@echo "   make eval-all          - Complete evaluation suite"
 	@echo "   make eval-session      - Session functionality tests"
 	@echo "   make eval-agent        - Agent behavior tests"
+	@echo "   make eval-meta-cognitive - Meta-cognitive capabilities tests"
 	@echo "   make eval-performance  - Performance tests"
 	@echo "   make eval-callbacks    - Callback system tests"
 	@echo "   make eval-preferences  - User preference system tests"
@@ -199,6 +215,7 @@ help:
 	@echo "   make eval-all-cost-optimized      - Complete suite (no tools, minimal instruction)"
 	@echo "   make eval-session-cost-optimized  - Session tests (cost optimized)"
 	@echo "   make eval-agent-cost-optimized    - Agent tests (cost optimized)"
+	@echo "   make eval-meta-cognitive-cost-optimized - Meta-cognitive tests (cost optimized)"
 	@echo "   make eval-performance-cost-optimized - Performance tests (cost optimized)"
 	@echo ""
 	@echo "🚢 Deployment:"
