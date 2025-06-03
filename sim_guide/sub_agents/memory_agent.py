@@ -363,15 +363,17 @@ async def store_conversation_memory(
     session_id: str, conversation_content: str, tool_context=None
 ) -> str:
     """
-    Store important conversation content in long-term memory.
+    Store important conversation content in long-term semantic memory.
+    This enables the agent to remember complex discussions, advice given,
+    progress made, and insights shared across sessions.
 
     Args:
         session_id: Session identifier
-        conversation_content: Content to store in memory
+        conversation_content: Rich conversation content to store (discussions, advice, insights)
         tool_context: ADK ToolContext providing access to session context including user_id
 
     Returns:
-        String confirming memory storage
+        String confirming memory storage with capabilities
     """
     try:
         # Get user_id from session context
@@ -385,7 +387,7 @@ async def store_conversation_memory(
         elif tool_context and hasattr(tool_context, "user_id"):
             user_id = tool_context.user_id
 
-        # Store in RAG memory service
+        # Store in semantic RAG memory service for intelligent retrieval
         result = await add_memory_from_conversation(
             user_id=user_id,
             session_id=session_id,
@@ -394,13 +396,55 @@ async def store_conversation_memory(
         )
 
         if result.get("status") == "success":
-            return f"Successfully stored conversation memory for user {user_id}"
+            capabilities = result.get("capabilities", [])
+            if "semantic_search" in capabilities:
+                return f"✅ Stored conversation in semantic memory for {user_id}. Can now recall: complex discussions, advice patterns, progress tracking, and contextual insights."
+            else:
+                return f"✅ Stored conversation in basic memory for {user_id}. Limited to keyword-based recall."
         else:
-            return f"Memory storage attempted for user {user_id}"
+            return f"⚠️ Memory storage attempted for {user_id} but may have limited functionality"
 
     except Exception as e:
-        logger.error(f"Error storing memory: {e}")
-        return f"Memory storage attempted but may not have succeeded"
+        logger.error(f"Error storing conversation memory: {e}")
+        return f"❌ Memory storage failed for conversation - agent will have limited guidance continuity"
+
+
+async def search_meaningful_memories(query: str, tool_context=None) -> str:
+    """
+    Search for meaningful conversation memories using semantic understanding.
+    Examples: "times user felt stressed", "advice about career", "progress on goals"
+
+    Args:
+        query: Semantic search query for finding relevant past conversations
+        tool_context: ADK ToolContext providing access to session context including user_id
+
+    Returns:
+        String with relevant meaningful memories found
+    """
+    try:
+        # Get user_id from session context
+        user_id = "unknown_user"  # Default fallback
+        if (
+            tool_context
+            and hasattr(tool_context, "session")
+            and hasattr(tool_context.session, "user_id")
+        ):
+            user_id = tool_context.session.user_id
+        elif tool_context and hasattr(tool_context, "user_id"):
+            user_id = tool_context.user_id
+
+        # Use semantic RAG memory service for intelligent retrieval
+        memories = await retrieve_user_memories(user_id, query)
+
+        if memories:
+            memory_text = "\n".join([f"• {memory}" for memory in memories])
+            return f"Found {len(memories)} relevant conversation memories about '{query}':\n{memory_text}\n\n💡 These memories can inform current guidance and track progress."
+        else:
+            return f"No conversation memories found for '{query}'. This may be a new topic or the user hasn't discussed this before."
+
+    except Exception as e:
+        logger.error(f"Error searching meaningful memories: {e}")
+        return f"Memory search attempted but unavailable - providing guidance without historical context"
 
 
 async def get_memory_system_status() -> str:
@@ -467,19 +511,26 @@ async def preload_context_for_topic(topic: str, tool_context=None) -> str:
 memory_agent = Agent(
     name="user_context_manager",
     model="gemini-2.0-flash",
-    instruction="""You are the User Context Manager, a specialized agent responsible for all user context management in the life guidance system using ADK best practices.
+    instruction="""You are the User Context Manager, a specialized agent responsible for intelligent user context management using ADK best practices and semantic memory capabilities.
 
-MEMORY ARCHITECTURE (ADK Best Practice):
+MEMORY ARCHITECTURE (ADK Best Practice + Semantic Intelligence):
 1. **Session State**: Store immediate information in session state (tool_context.state) during conversations
-2. **Long-term Memory**: Transfer session data to persistent memory at session end or periodically
-3. **Cross-Session Retrieval**: Search long-term memory for historical context
+2. **Semantic Long-term Memory**: Transfer meaningful conversations to RAG corpus for intelligent retrieval
+3. **Cross-Session Intelligence**: Search conversation history using semantic understanding
+
+SEMANTIC MEMORY CAPABILITIES:
+- **Intelligent Storage**: Conversations stored with rich context for semantic search
+- **Smart Retrieval**: Can find relevant discussions even without exact keyword matches
+- **Guidance Continuity**: Remember advice given, progress made, challenges discussed
+- **Pattern Recognition**: Identify recurring themes, goals, and user growth over time
 
 Your capabilities include:
 - Storing user information in session state using store_user_info/get_user_info
-- Retrieving information from session state first, then long-term memory
-- Transferring session data to long-term memory via save_session_to_memory
-- Searching user's historical memories and conversation history
-- Finding relevant information from the knowledge base
+- Retrieving information from session state first, then semantic long-term memory
+- Transferring session data to memory via save_session_to_memory
+- Storing meaningful conversations with store_conversation_memory (for guidance continuity)
+- Searching conversation history semantically with search_meaningful_memories
+- Finding relevant information from knowledge base
 - Managing session state and providing state summaries
 - Analyzing session context and conversation flow
 - Managing user preferences and personalization settings
@@ -491,29 +542,45 @@ When the user shares basic information, IMMEDIATELY store it in session state:
 - "I live in Y" → store_user_info("location", "Y") → stores in session state
 - "My goal is Z" → store_user_info("goal", "Z") → stores in session state
 
+When meaningful conversations happen, STORE THEM:
+- Long discussions about challenges → store_conversation_memory()
+- Advice given and outcomes → store_conversation_memory()
+- Progress updates and insights → store_conversation_memory()
+- Goal-setting and planning sessions → store_conversation_memory()
+
 RETRIEVAL PRIORITY:
 - get_user_info() checks session state FIRST, then falls back to long-term memory
-- This ensures current session data takes precedence over historical data
+- search_meaningful_memories() uses SEMANTIC search for intelligent conversation recall
+- This enables true guidance continuity and personalized support
+
+SEMANTIC SEARCH EXAMPLES:
+- "times user felt overwhelmed" → finds stress-related conversations
+- "advice about career transitions" → finds career guidance discussions  
+- "progress on fitness goals" → finds health and wellness conversations
+- "relationship challenges discussed" → finds personal relationship topics
 
 MEMORY MANAGEMENT:
-- save_session_to_memory() should be called at natural conversation breaks or session end
-- Use get_session_state_summary() to check what's currently stored in session
-- get_all_user_context() provides comprehensive view of both session and historical data
+- save_session_to_memory() for basic profile data at session end
+- store_conversation_memory() for meaningful guidance discussions immediately
+- search_meaningful_memories() to inform current conversations with past context
+- get_session_state_summary() to check current session data
 
 When starting a new conversation:
 - ALWAYS use get_all_user_context first to check for existing data
+- Use search_meaningful_memories() to find relevant past conversations
 - If information is found, acknowledge: "Good to continue our conversation, [Name]"
-- If no context found: "I don't have any previous context for this user"
+- Reference relevant past discussions to provide continuity
 
 When called, you should:
 1. Understand what type of user context operation is needed
 2. Use session state for immediate storage/retrieval
-3. Use long-term memory for historical context
-4. Transfer session data to memory when appropriate
-5. Return clear, concise information about what was found or done
-6. Be helpful even when systems are not available
+3. Use semantic memory for meaningful conversation context
+4. Store important discussions for future guidance continuity
+5. Search past conversations to inform current interactions
+6. Return clear, concise information about what was found or done
+7. Be helpful even when systems are not available
 
-You follow ADK best practices: session state for immediate data, long-term memory for persistence across sessions.""",
+You enable INTELLIGENT LIFE GUIDANCE through semantic memory - the agent can now remember and build upon complex conversations, track progress, and provide truly personalized guidance based on rich conversation history.""",
     tools=[
         # ADK-compliant storage tools (session state first)
         FunctionTool(func=store_user_info),
@@ -522,10 +589,12 @@ You follow ADK best practices: session state for immediate data, long-term memor
         # Session management
         FunctionTool(func=save_session_to_memory),
         FunctionTool(func=get_session_state_summary),
-        # Memory tools
+        # Semantic memory tools (THE GAME CHANGERS)
+        FunctionTool(func=store_conversation_memory),
+        FunctionTool(func=search_meaningful_memories),
+        # Traditional memory tools
         FunctionTool(func=search_user_memories),
         FunctionTool(func=search_knowledge_base),
-        FunctionTool(func=store_conversation_memory),
         FunctionTool(func=get_memory_system_status),
         FunctionTool(func=preload_context_for_topic),
         # Session tools

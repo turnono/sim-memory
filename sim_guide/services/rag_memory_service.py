@@ -16,6 +16,7 @@ import vertexai
 from vertexai import rag
 from vertexai.generative_models import GenerativeModel, Tool
 from google.cloud import storage
+from google.oauth2 import service_account
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -48,6 +49,15 @@ try:
 except Exception as e:
     logger.error(f"Failed to initialize Vertex AI: {e}")
     RAG_SERVICE_CONFIG["enabled"] = False
+
+# RAG imports
+try:
+    from vertexai import rag
+
+    VERTEXAI_AVAILABLE = True
+except ImportError as e:
+    VERTEXAI_AVAILABLE = False
+    rag = None
 
 
 def get_storage_client():
@@ -165,7 +175,7 @@ async def add_memory_from_conversation(
     memory_type: str = "general",
 ) -> Dict[str, Any]:
     """
-    Add memory from conversation to user's RAG corpus.
+    Add memory from conversation to user's RAG corpus with semantic search capability.
 
     Args:
         user_id: User identifier
@@ -186,75 +196,160 @@ async def add_memory_from_conversation(
         # Create user-specific corpus if it doesn't exist
         corpus_display_name = f"user-memory-{user_id}"
 
-        # Try to create corpus (this will fail if it already exists, which is fine)
+        # List existing corpora to check if user corpus exists
         try:
-            corpus_result = await create_rag_corpus(user_id, corpus_display_name)
-            if (
-                corpus_result["status"] == "error"
-                and "already exists" not in corpus_result["message"]
-            ):
-                return corpus_result
-        except Exception:
-            # Corpus might already exist, continue
-            pass
+            corpora = rag.list_corpora()
+            user_corpus = None
 
-        # Prepare memory document
-        memory_content = {
+            for corpus in corpora:
+                if corpus.display_name == corpus_display_name:
+                    user_corpus = corpus
+                    break
+
+            # Create corpus if it doesn't exist
+            if not user_corpus:
+                embedding_model_config = rag.RagEmbeddingModelConfig(
+                    vertex_prediction_endpoint=rag.VertexPredictionEndpoint(
+                        publisher_model="publishers/google/models/text-embedding-005"
+                    )
+                )
+
+                user_corpus = rag.create_corpus(
+                    display_name=corpus_display_name,
+                    backend_config=rag.RagVectorDbConfig(
+                        rag_embedding_model_config=embedding_model_config
+                    ),
+                )
+                logger.info(f"Created new RAG corpus for user {user_id}")
+
+        except Exception as e:
+            logger.error(f"Error managing RAG corpus for user {user_id}: {e}")
+            # Fallback to simple storage if RAG corpus fails
+            return await _fallback_gcs_storage(
+                user_id, session_id, conversation_text, memory_type
+            )
+
+        # Prepare rich memory document for semantic search
+        memory_metadata = {
             "user_id": user_id,
             "session_id": session_id,
             "memory_type": memory_type,
-            "content": conversation_text,
             "timestamp": datetime.now(timezone.utc).isoformat(),
         }
 
-        # Convert to text format for RAG
+        # Create rich memory text that includes context for better semantic matching
         memory_text = f"""
-Memory Type: {memory_type}
-User: {user_id}
-Session: {session_id}
-Timestamp: {memory_content["timestamp"]}
-Content: {conversation_text}
+Session Context: User {user_id} in session {session_id} ({memory_type})
+Date: {memory_metadata["timestamp"]}
+
+Conversation Content:
+{conversation_text}
+
+Memory Summary: This represents a {memory_type} interaction where the user discussed various topics that may be relevant for future guidance and continuity.
         """.strip()
 
-        # Store in Cloud Storage first
-        bucket_name = get_default_bucket()
-        storage_client = get_storage_client()
-        bucket = storage_client.bucket(bucket_name)
+        try:
+            # Store content in GCS first, then upload to RAG
+            gcs_result = await _backup_to_gcs(
+                user_id, session_id, memory_text, memory_type
+            )
 
-        # Create unique file name
-        file_name = f"memories/{user_id}/{session_id}_{memory_type}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.txt"
-        blob = bucket.blob(file_name)
+            if gcs_result.get("gcs_uri"):
+                # Import the GCS file into RAG corpus
+                import_response = rag.import_files(
+                    corpus_name=user_corpus.name,
+                    paths=[gcs_result["gcs_uri"]],
+                    transformation_config=rag.TransformationConfig(
+                        rag.ChunkingConfig(chunk_size=512, chunk_overlap=100)
+                    ),
+                )
 
-        # Upload memory content
-        blob.upload_from_string(memory_text, content_type="text/plain")
+                return {
+                    "status": "success",
+                    "message": f"Successfully stored semantic memory for user {user_id}",
+                    "memory_id": f"corpus:{user_corpus.name}",
+                    "corpus_name": user_corpus.name,
+                    "imported_files": import_response.imported_rag_files_count
+                    if hasattr(import_response, "imported_rag_files_count")
+                    else 1,
+                    "capabilities": [
+                        "semantic_search",
+                        "conversation_context",
+                        "guidance_continuity",
+                    ],
+                }
+            else:
+                # Fallback if GCS storage failed
+                return await _fallback_gcs_storage(
+                    user_id, session_id, conversation_text, memory_type
+                )
 
-        gcs_uri = f"gs://{bucket_name}/{file_name}"
-
-        # For now, we'll store the memory in GCS but won't import to RAG corpus
-        # due to API complexity. We'll implement a simpler approach for retrieval.
-
-        return {
-            "status": "success",
-            "message": f"Successfully stored memory for user {user_id}",
-            "memory_id": file_name,
-            "gcs_uri": gcs_uri,
-        }
+        except Exception as e:
+            logger.error(f"Failed to upload to RAG corpus: {e}")
+            # Fallback to GCS if RAG upload fails
+            return await _fallback_gcs_storage(
+                user_id, session_id, conversation_text, memory_type
+            )
 
     except Exception as e:
-        logger.error(f"Failed to add memory: {e}")
+        logger.error(f"Failed to add semantic memory: {e}")
         return {
             "status": "error",
             "message": f"Failed to store memory: {str(e)}",
         }
 
 
+async def _backup_to_gcs(
+    user_id: str, session_id: str, memory_text: str, memory_type: str
+) -> Dict[str, Any]:
+    """Backup memory to GCS for redundancy"""
+    try:
+        bucket_name = get_default_bucket()
+        storage_client = get_storage_client()
+        bucket = storage_client.bucket(bucket_name)
+
+        file_name = f"memories/{user_id}/{session_id}_{memory_type}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.txt"
+        blob = bucket.blob(file_name)
+        blob.upload_from_string(memory_text, content_type="text/plain")
+
+        return {"gcs_uri": f"gs://{bucket_name}/{file_name}"}
+    except Exception as e:
+        logger.error(f"GCS backup failed: {e}")
+        return {"gcs_uri": None}
+
+
+async def _fallback_gcs_storage(
+    user_id: str, session_id: str, conversation_text: str, memory_type: str
+) -> Dict[str, Any]:
+    """Fallback to simple GCS storage when RAG corpus is unavailable"""
+    try:
+        memory_text = f"""
+Memory Type: {memory_type}
+User: {user_id}
+Session: {session_id}
+Timestamp: {datetime.now(timezone.utc).isoformat()}
+Content: {conversation_text}
+        """.strip()
+
+        result = await _backup_to_gcs(user_id, session_id, memory_text, memory_type)
+
+        return {
+            "status": "success",
+            "message": f"Stored memory in fallback mode for user {user_id}",
+            "memory_id": result.get("gcs_uri"),
+            "capabilities": ["basic_keyword_search"],
+        }
+    except Exception as e:
+        return {"status": "error", "message": f"All storage methods failed: {str(e)}"}
+
+
 async def retrieve_user_memories(user_id: str, query: str) -> List[str]:
     """
-    Retrieve user's memories based on a query.
+    Retrieve user's memories using semantic search when available, keyword search as fallback.
 
     Args:
         user_id: User identifier
-        query: Search query for memories
+        query: Search query for memories (can be semantic: "times I felt stressed about work")
 
     Returns:
         List of relevant memory texts
@@ -263,8 +358,77 @@ async def retrieve_user_memories(user_id: str, query: str) -> List[str]:
         if not RAG_SERVICE_CONFIG["enabled"]:
             return []
 
-        # For now, implement a simple file-based search
-        # List files in user's memory directory
+        # Try semantic search first
+        semantic_results = await _semantic_memory_search(user_id, query)
+        if semantic_results:
+            return semantic_results
+
+        # Fallback to keyword search in GCS
+        return await _keyword_memory_search(user_id, query)
+
+    except Exception as e:
+        logger.error(f"Failed to retrieve memories: {e}")
+        return []
+
+
+async def _semantic_memory_search(user_id: str, query: str) -> List[str]:
+    """Search using RAG corpus for semantic understanding"""
+    try:
+        # Find user's corpus
+        corpora = rag.list_corpora()
+        corpus_display_name = f"user-memory-{user_id}"
+        user_corpus = None
+
+        for corpus in corpora:
+            if corpus.display_name == corpus_display_name:
+                user_corpus = corpus
+                break
+
+        if not user_corpus:
+            logger.info(f"No RAG corpus found for user {user_id}")
+            return []
+
+        # Perform semantic search using correct API
+        response = rag.retrieval_query(
+            rag_resources=[
+                rag.RagResource(
+                    rag_corpus=user_corpus.name,
+                )
+            ],
+            text=query,
+            # Use correct parameter name
+            rag_retrieval_config=rag.RagRetrievalConfig(
+                top_k=5,
+                filter=rag.utils.resources.Filter(vector_distance_threshold=0.5),
+            ),
+        )
+
+        memories = []
+        if hasattr(response, "contexts") and response.contexts:
+            for context in response.contexts.contexts:
+                if hasattr(context, "text") and context.text:
+                    # Extract the actual conversation content
+                    content = context.text
+                    if "Conversation Content:" in content:
+                        conversation_part = content.split("Conversation Content:")[1]
+                        if "Memory Summary:" in conversation_part:
+                            conversation_part = conversation_part.split(
+                                "Memory Summary:"
+                            )[0]
+                        memories.append(conversation_part.strip())
+                    else:
+                        memories.append(content)
+
+        return memories[:5]
+
+    except Exception as e:
+        logger.error(f"Semantic search failed for user {user_id}: {e}")
+        return []
+
+
+async def _keyword_memory_search(user_id: str, query: str) -> List[str]:
+    """Fallback keyword search in GCS files"""
+    try:
         bucket_name = get_default_bucket()
         storage_client = get_storage_client()
         bucket = storage_client.bucket(bucket_name)
@@ -293,7 +457,7 @@ async def retrieve_user_memories(user_id: str, query: str) -> List[str]:
         return memories[:5]  # Return up to 5 memories
 
     except Exception as e:
-        logger.error(f"Failed to retrieve memories: {e}")
+        logger.error(f"Keyword search failed: {e}")
         return []
 
 
