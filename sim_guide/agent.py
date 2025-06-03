@@ -13,6 +13,10 @@ from .prompts import PROMPT
 from .sub_agents.memory_agent import memory_agent
 from .sub_agents.capability_enhancement_agent import capability_enhancement_agent
 from .sub_agents.web_search_agent import web_search_agent
+from .sub_agents.business_strategist_agent import business_strategist
+
+# Import tools
+from .tools import ALL_TOOLS
 
 root_agent = Agent(
     name="sim_guide",
@@ -28,7 +32,9 @@ root_agent = Agent(
         AgentTool(agent=memory_agent),
         AgentTool(agent=capability_enhancement_agent),
         AgentTool(agent=web_search_agent),
-    ],
+        AgentTool(agent=business_strategist),
+    ]
+    + ALL_TOOLS,
 )
 
 # Cost-optimized agent for evaluations (no tools, minimal instruction)
