@@ -12,7 +12,6 @@ dev:
 frontend-do:
 	cd frontend && npm start
 
-
 # production build and deploy
 
 deploy-frontend:
@@ -66,15 +65,6 @@ eval-meta-cognitive:
 eval-meta-cognitive-cost-optimized:
 	@echo "[Eval Meta-Cognitive - Cost Optimized] Running meta-cognitive evaluation with cost optimization..."
 	USE_EVAL_AGENT=true RAG_COST_OPTIMIZED=true python evals/meta_cognitive_evals.py
-
-# Test web search capabilities
-test-web-search:
-	@echo "[Test Web Search] Testing web search agent integration..."
-	python evals/web_search_evals.py
-
-eval-web-search:
-	@echo "[Eval Web Search] Running web search capabilities evaluation..."
-	python evals/web_search_evals.py
 
 # Evaluation commands
 eval-all:
@@ -192,6 +182,9 @@ test-session-api:
 	@curl -X POST "https://sim-guide-agent-service-855515190257.us-central1.run.app/apps/sim-guide/users/test-user/sessions" \
 		-H "Content-Type: application/json" -d '{}' -s | python -m json.tool
 
+# New Development and Testing Commands
+.PHONY: help install test eval test-memory test-capability test-web-search eval-memory eval-capability eval-web-search
+
 # Help command
 help:
 	@echo "🚀 Sim-Guide Agent Makefile Commands"
@@ -206,17 +199,21 @@ help:
 	@echo "   make test-session      - Test session service"
 	@echo "   make test-rag          - Test RAG memory service"
 	@echo "   make test-meta-cognitive - Test meta-cognitive capabilities"
-	@echo "   make test-web-search   - Test web search agent integration"
 	@echo "   make test-session-api  - Test deployed API session creation"
 	@echo "   make verify-deployment - Verify deployed service health"
 	@echo "   make eval-quick        - Quick health check"
+	@echo ""
+	@echo "🧪 New Component Tests:"
+	@echo "   make test              - Run all component tests"
+	@echo "   make test-memory       - Test memory behavior specifically"
+	@echo "   make test-capability   - Test capability enhancement specifically"
+	@echo "   make test-web-search   - Test web search agent specifically"
 	@echo ""
 	@echo "🧪 Standard Evaluations (Higher Cost):"
 	@echo "   make eval-all          - Complete evaluation suite"
 	@echo "   make eval-session      - Session functionality tests"
 	@echo "   make eval-agent        - Agent behavior tests"
 	@echo "   make eval-meta-cognitive - Meta-cognitive capabilities tests"
-	@echo "   make eval-web-search   - Web search capabilities tests"
 	@echo "   make eval-performance  - Performance tests"
 	@echo "   make eval-callbacks    - Callback system tests"
 	@echo "   make eval-preferences  - User preference system tests"
@@ -237,11 +234,30 @@ help:
 	@echo "   make dev               - Start local development server"
 	@echo "   make firestore-emulator- Start Firestore emulator"
 	@echo ""
-	@echo "🔗 Setup Guides:"
-	@echo "   📖 README.md          - Complete project documentation"
-	@echo "   📖 RAG_SETUP_GUIDE.md - RAG Memory Service setup"
-	@echo "   📖 VERTEX_AI_SETUP.md - VertexAI configuration"
-	@echo ""
 	@echo "🌐 Live Service:"
 	@echo "   API: https://sim-guide-agent-service-855515190257.us-central1.run.app"
 	@echo "   UI:  https://sim-guide-agent-service-855515190257.us-central1.run.app/dev-ui"
+
+install:
+	pip install -r requirements.txt
+
+test: test-memory test-capability test-web-search
+	@echo "All component tests completed"
+
+eval: eval-memory eval-capability eval-web-search
+	@echo "All component evaluations completed"
+
+test-memory:
+	python evals/memory_behavior_evals.py
+
+test-capability:
+	python evals/capability_evals.py
+
+test-web-search:
+	python evals/web_search_evals.py
+
+eval-memory: test-memory
+
+eval-capability: test-capability
+
+eval-web-search: test-web-search 
