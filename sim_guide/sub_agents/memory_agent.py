@@ -61,15 +61,17 @@ async def store_user_info(info_type: str, info_value: str, tool_context=None) ->
         String confirming information storage
     """
     try:
-        if not tool_context or not hasattr(tool_context, 'state'):
-            return f"Session state not available - cannot store {info_type}: {info_value}"
-        
+        if not tool_context or not hasattr(tool_context, "state"):
+            return (
+                f"Session state not available - cannot store {info_type}: {info_value}"
+            )
+
         # Store in session state (ADK recommended approach)
-        if 'user_profile' not in tool_context.state:
-            tool_context.state['user_profile'] = {}
-        
-        tool_context.state['user_profile'][info_type] = info_value
-        
+        if "user_profile" not in tool_context.state:
+            tool_context.state["user_profile"] = {}
+
+        tool_context.state["user_profile"][info_type] = info_value
+
         return f"Successfully stored {info_type}: {info_value} in session"
 
     except Exception as e:
@@ -90,19 +92,23 @@ async def get_user_info(info_type: str, tool_context=None) -> str:
     """
     try:
         # First check session state (current session data)
-        if tool_context and hasattr(tool_context, 'state'):
-            user_profile = tool_context.state.get('user_profile', {})
+        if tool_context and hasattr(tool_context, "state"):
+            user_profile = tool_context.state.get("user_profile", {})
             if info_type in user_profile:
                 value = user_profile[info_type]
                 return f"Found {info_type}: {value} (from current session)"
-        
+
         # Fallback to long-term memory for cross-session data
         user_id = "unknown_user"
-        if tool_context and hasattr(tool_context, 'session') and hasattr(tool_context.session, 'user_id'):
+        if (
+            tool_context
+            and hasattr(tool_context, "session")
+            and hasattr(tool_context.session, "user_id")
+        ):
             user_id = tool_context.session.user_id
-        elif tool_context and hasattr(tool_context, 'user_id'):
+        elif tool_context and hasattr(tool_context, "user_id"):
             user_id = tool_context.user_id
-            
+
         # Search long-term memory
         memories = await retrieve_user_memories(user_id, info_type)
         if memories:
@@ -113,7 +119,9 @@ async def get_user_info(info_type: str, tool_context=None) -> str:
                     relevant_memories.append(memory)
 
             if relevant_memories:
-                return f"Found {info_type} from previous sessions:\n" + "\n".join([f"• {mem}" for mem in relevant_memories])
+                return f"Found {info_type} from previous sessions:\n" + "\n".join(
+                    [f"• {mem}" for mem in relevant_memories]
+                )
 
         return f"No {info_type} information found in session or memory"
 
@@ -134,31 +142,35 @@ async def get_all_user_context(tool_context=None) -> str:
     """
     try:
         context_parts = []
-        
+
         # Get current session context
-        if tool_context and hasattr(tool_context, 'state'):
-            user_profile = tool_context.state.get('user_profile', {})
+        if tool_context and hasattr(tool_context, "state"):
+            user_profile = tool_context.state.get("user_profile", {})
             if user_profile:
                 context_parts.append("Current session information:")
                 for info_type, info_value in user_profile.items():
                     context_parts.append(f"• {info_type}: {info_value}")
-        
+
         # Get historical context from long-term memory
         user_id = "unknown_user"
-        if tool_context and hasattr(tool_context, 'session') and hasattr(tool_context.session, 'user_id'):
+        if (
+            tool_context
+            and hasattr(tool_context, "session")
+            and hasattr(tool_context.session, "user_id")
+        ):
             user_id = tool_context.session.user_id
-        elif tool_context and hasattr(tool_context, 'user_id'):
+        elif tool_context and hasattr(tool_context, "user_id"):
             user_id = tool_context.user_id
-        
+
         # Search for common user info types in long-term memory
         info_types = ["name", "profession", "location", "goal", "interest", "skill"]
         historical_context = []
-        
+
         for info_type in info_types:
             memories = await retrieve_user_memories(user_id, info_type)
             if memories:
                 historical_context.append(f"Historical {info_type}: {memories[0]}")
-        
+
         if historical_context:
             context_parts.append("\nPrevious session information:")
             context_parts.extend([f"• {ctx}" for ctx in historical_context])
@@ -184,31 +196,37 @@ async def save_session_to_memory(tool_context=None) -> str:
         String confirming memory storage
     """
     try:
-        if not tool_context or not hasattr(tool_context, 'state'):
+        if not tool_context or not hasattr(tool_context, "state"):
             return "Session state not available - cannot save to memory"
-        
+
         user_id = "unknown_user"
-        if hasattr(tool_context, 'session') and hasattr(tool_context.session, 'user_id'):
+        if hasattr(tool_context, "session") and hasattr(
+            tool_context.session, "user_id"
+        ):
             user_id = tool_context.session.user_id
-        elif hasattr(tool_context, 'user_id'):
+        elif hasattr(tool_context, "user_id"):
             user_id = tool_context.user_id
-            
-        session_id = getattr(tool_context.session, 'session_id', 'unknown_session') if hasattr(tool_context, 'session') else 'unknown_session'
-        
+
+        session_id = (
+            getattr(tool_context.session, "session_id", "unknown_session")
+            if hasattr(tool_context, "session")
+            else "unknown_session"
+        )
+
         # Get user profile from session state
-        user_profile = tool_context.state.get('user_profile', {})
-        
+        user_profile = tool_context.state.get("user_profile", {})
+
         if not user_profile:
             return "No user profile data in session to save"
-        
+
         # Convert session data to conversation text for memory storage
         profile_text = "User profile information: "
         profile_items = []
         for info_type, info_value in user_profile.items():
             profile_items.append(f"{info_type}: {info_value}")
-        
+
         profile_text += ", ".join(profile_items)
-        
+
         # Store in long-term memory
         result = await add_memory_from_conversation(
             user_id=user_id,
@@ -238,25 +256,25 @@ async def get_session_state_summary(tool_context=None) -> str:
         String with session state summary
     """
     try:
-        if not tool_context or not hasattr(tool_context, 'state'):
+        if not tool_context or not hasattr(tool_context, "state"):
             return "Session state not available"
-        
+
         state_summary = []
-        
+
         # Check user profile
-        user_profile = tool_context.state.get('user_profile', {})
+        user_profile = tool_context.state.get("user_profile", {})
         if user_profile:
             state_summary.append("User Profile in Session:")
             for info_type, info_value in user_profile.items():
                 state_summary.append(f"• {info_type}: {info_value}")
-        
+
         # Check other session data
-        other_keys = [key for key in tool_context.state.keys() if key != 'user_profile']
+        other_keys = [key for key in tool_context.state.keys() if key != "user_profile"]
         if other_keys:
             state_summary.append("Other Session Data:")
             for key in other_keys:
                 state_summary.append(f"• {key}: {tool_context.state[key]}")
-        
+
         if state_summary:
             return "\n".join(state_summary)
         else:
@@ -281,18 +299,24 @@ async def search_user_memories(query: str, tool_context=None) -> str:
     try:
         # Get user_id from session context
         user_id = "unknown_user"  # Default fallback
-        if tool_context and hasattr(tool_context, 'session') and hasattr(tool_context.session, 'user_id'):
+        if (
+            tool_context
+            and hasattr(tool_context, "session")
+            and hasattr(tool_context.session, "user_id")
+        ):
             user_id = tool_context.session.user_id
-        elif tool_context and hasattr(tool_context, 'user_id'):
+        elif tool_context and hasattr(tool_context, "user_id"):
             user_id = tool_context.user_id
-            
+
         # Use RAG memory service to search user's memories
         memories = await retrieve_user_memories(user_id, query)
 
         if memories:
             # Safely slice memories - limit to 5 but handle if list is shorter
             memory_limit = min(len(memories), 5)
-            memory_text = "\n".join([f"• {memory}" for memory in memories[:memory_limit]])
+            memory_text = "\n".join(
+                [f"• {memory}" for memory in memories[:memory_limit]]
+            )
             return f"Found {len(memories)} relevant memories:\n{memory_text}"
         else:
             return f"No specific memories found for query: {query}"
@@ -352,11 +376,15 @@ async def store_conversation_memory(
     try:
         # Get user_id from session context
         user_id = "unknown_user"  # Default fallback
-        if tool_context and hasattr(tool_context, 'session') and hasattr(tool_context.session, 'user_id'):
+        if (
+            tool_context
+            and hasattr(tool_context, "session")
+            and hasattr(tool_context.session, "user_id")
+        ):
             user_id = tool_context.session.user_id
-        elif tool_context and hasattr(tool_context, 'user_id'):
+        elif tool_context and hasattr(tool_context, "user_id"):
             user_id = tool_context.user_id
-            
+
         # Store in RAG memory service
         result = await add_memory_from_conversation(
             user_id=user_id,
@@ -410,11 +438,15 @@ async def preload_context_for_topic(topic: str, tool_context=None) -> str:
     try:
         # Get user_id from session context
         user_id = "unknown_user"  # Default fallback
-        if tool_context and hasattr(tool_context, 'session') and hasattr(tool_context.session, 'user_id'):
+        if (
+            tool_context
+            and hasattr(tool_context, "session")
+            and hasattr(tool_context.session, "user_id")
+        ):
             user_id = tool_context.session.user_id
-        elif tool_context and hasattr(tool_context, 'user_id'):
+        elif tool_context and hasattr(tool_context, "user_id"):
             user_id = tool_context.user_id
-            
+
         # Search both user memories and knowledge base
         user_context = await search_user_memories(topic, tool_context)
         knowledge_context = await search_knowledge_base(topic)

@@ -174,7 +174,9 @@ async def test_preference_tools():
 
         # Test setting user name
         set_name_result = set_user_preference(
-            preference_name="name", preference_value="TestUser", tool_context=mock_context
+            preference_name="name",
+            preference_value="TestUser",
+            tool_context=mock_context,
         )
         name_success = (
             isinstance(set_name_result, str)
@@ -184,7 +186,9 @@ async def test_preference_tools():
 
         # Test setting life experience level
         set_exp_result = set_user_preference(
-            preference_name="life_experience_level", preference_value="experienced", tool_context=mock_context
+            preference_name="life_experience_level",
+            preference_value="experienced",
+            tool_context=mock_context,
         )
         exp_success = (
             isinstance(set_exp_result, str) and "Successfully updated" in set_exp_result

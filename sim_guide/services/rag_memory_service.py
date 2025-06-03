@@ -23,7 +23,7 @@ logger = logging.getLogger(__name__)
 
 # Use the same environment variables as the rest of the system
 PROJECT_ID = os.getenv("GOOGLE_CLOUD_PROJECT")  # Changed from PROJECT_ID
-LOCATION = os.getenv("GOOGLE_CLOUD_LOCATION")   # Changed from LOCATION
+LOCATION = os.getenv("GOOGLE_CLOUD_LOCATION")  # Changed from LOCATION
 
 # RAG Memory Service Configuration
 RAG_SERVICE_CONFIG = {
@@ -31,7 +31,9 @@ RAG_SERVICE_CONFIG = {
 }
 
 if not all([PROJECT_ID, LOCATION]):
-    logger.warning("GOOGLE_CLOUD_PROJECT and GOOGLE_CLOUD_LOCATION must be set for RAG Memory Service")
+    logger.warning(
+        "GOOGLE_CLOUD_PROJECT and GOOGLE_CLOUD_LOCATION must be set for RAG Memory Service"
+    )
     logger.warning("RAG Memory Service will operate in degraded mode")
 
 # Initialize Vertex AI if configuration is available
@@ -40,7 +42,9 @@ try:
         vertexai.init(project=PROJECT_ID, location=LOCATION)
         logger.info(f"RAG Memory Service initialized for project {PROJECT_ID}")
     else:
-        logger.warning("RAG Memory Service running in degraded mode - no persistent storage")
+        logger.warning(
+            "RAG Memory Service running in degraded mode - no persistent storage"
+        )
 except Exception as e:
     logger.error(f"Failed to initialize Vertex AI: {e}")
     RAG_SERVICE_CONFIG["enabled"] = False
@@ -181,11 +185,14 @@ async def add_memory_from_conversation(
 
         # Create user-specific corpus if it doesn't exist
         corpus_display_name = f"user-memory-{user_id}"
-        
+
         # Try to create corpus (this will fail if it already exists, which is fine)
         try:
             corpus_result = await create_rag_corpus(user_id, corpus_display_name)
-            if corpus_result["status"] == "error" and "already exists" not in corpus_result["message"]:
+            if (
+                corpus_result["status"] == "error"
+                and "already exists" not in corpus_result["message"]
+            ):
                 return corpus_result
         except Exception:
             # Corpus might already exist, continue
@@ -205,7 +212,7 @@ async def add_memory_from_conversation(
 Memory Type: {memory_type}
 User: {user_id}
 Session: {session_id}
-Timestamp: {memory_content['timestamp']}
+Timestamp: {memory_content["timestamp"]}
 Content: {conversation_text}
         """.strip()
 
@@ -261,10 +268,10 @@ async def retrieve_user_memories(user_id: str, query: str) -> List[str]:
         bucket_name = get_default_bucket()
         storage_client = get_storage_client()
         bucket = storage_client.bucket(bucket_name)
-        
+
         prefix = f"memories/{user_id}/"
         blobs = bucket.list_blobs(prefix=prefix)
-        
+
         memories = []
         for blob in blobs:
             try:
@@ -272,17 +279,17 @@ async def retrieve_user_memories(user_id: str, query: str) -> List[str]:
                 # Simple keyword matching
                 if query.lower() in content.lower():
                     # Extract the content part
-                    lines = content.split('\n')
+                    lines = content.split("\n")
                     for line in lines:
-                        if line.startswith('Content:'):
-                            content_text = line.replace('Content:', '').strip()
+                        if line.startswith("Content:"):
+                            content_text = line.replace("Content:", "").strip()
                             if content_text:
                                 memories.append(content_text)
                             break
             except Exception as e:
                 logger.error(f"Error reading memory blob {blob.name}: {e}")
                 continue
-                
+
         return memories[:5]  # Return up to 5 memories
 
     except Exception as e:

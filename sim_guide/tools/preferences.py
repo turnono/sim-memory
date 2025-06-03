@@ -38,7 +38,7 @@ def get_user_preferences(tool_context) -> str:
     """
     try:
         # Get session state from ADK ToolContext
-        session_state = getattr(tool_context, 'state', {}) if tool_context else {}
+        session_state = getattr(tool_context, "state", {}) if tool_context else {}
         preferences = service_get_user_preferences(session_state)
 
         summary = format_preferences_summary(preferences)
@@ -49,7 +49,9 @@ def get_user_preferences(tool_context) -> str:
         return f"Error: Failed to get user preferences: {str(e)}"
 
 
-def set_user_preference(preference_name: str, preference_value: str, tool_context) -> str:
+def set_user_preference(
+    preference_name: str, preference_value: str, tool_context
+) -> str:
     """
     Set a specific user life guidance preference.
 
@@ -63,7 +65,7 @@ def set_user_preference(preference_name: str, preference_value: str, tool_contex
     """
     try:
         # Get session state from ADK ToolContext
-        session_state = getattr(tool_context, 'state', {}) if tool_context else {}
+        session_state = getattr(tool_context, "state", {}) if tool_context else {}
         preferences = service_get_user_preferences(session_state)
 
         # Handle different preference types for life guidance
@@ -148,7 +150,7 @@ def analyze_message_for_preferences(message: str, tool_context) -> str:
     """
     try:
         # Get session state from ADK ToolContext
-        session_state = getattr(tool_context, 'state', {}) if tool_context else {}
+        session_state = getattr(tool_context, "state", {}) if tool_context else {}
 
         # Store original preferences for comparison
         original_prefs = service_get_user_preferences(session_state)
@@ -219,7 +221,7 @@ def get_personalization_context(tool_context) -> str:
     """
     try:
         # Get session state from ADK ToolContext
-        session_state = getattr(tool_context, 'state', {}) if tool_context else {}
+        session_state = getattr(tool_context, "state", {}) if tool_context else {}
         preferences = service_get_user_preferences(session_state)
 
         personalization_context = get_personalized_instruction_context(preferences)
