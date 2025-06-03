@@ -158,8 +158,15 @@ async def test_preference_tools():
             get_personalization_context,
         )
 
+        # Create a mock ToolContext for testing
+        class MockToolContext:
+            def __init__(self):
+                self.state = {}
+
+        mock_context = MockToolContext()
+
         # Test getting initial (empty) preferences
-        initial_result = get_user_preferences()
+        initial_result = get_user_preferences(mock_context)
         initial_success = isinstance(
             initial_result, str
         ) and not initial_result.startswith("Error:")
@@ -167,7 +174,7 @@ async def test_preference_tools():
 
         # Test setting user name
         set_name_result = set_user_preference(
-            preference_name="name", preference_value="TestUser"
+            preference_name="name", preference_value="TestUser", tool_context=mock_context
         )
         name_success = (
             isinstance(set_name_result, str)
@@ -177,7 +184,7 @@ async def test_preference_tools():
 
         # Test setting life experience level
         set_exp_result = set_user_preference(
-            preference_name="life_experience_level", preference_value="experienced"
+            preference_name="life_experience_level", preference_value="experienced", tool_context=mock_context
         )
         exp_success = (
             isinstance(set_exp_result, str) and "Successfully updated" in set_exp_result
@@ -185,7 +192,7 @@ async def test_preference_tools():
         print(f"  🎓 Set life experience level result: {exp_success}")
 
         # Get final preferences to verify
-        final_result = get_user_preferences()
+        final_result = get_user_preferences(mock_context)
         final_success = isinstance(final_result, str) and not final_result.startswith(
             "Error:"
         )

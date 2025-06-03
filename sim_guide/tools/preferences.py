@@ -7,6 +7,7 @@ for daily life and long-term goal guidance.
 
 import logging
 from typing import Dict, Any, Optional, List, Union
+from google.adk.tools import ToolContext
 
 # Import from the new organized modules
 from ..services import (
@@ -24,19 +25,20 @@ from ..services import (
 logger = logging.getLogger(__name__)
 
 
-def get_user_preferences() -> str:
+def get_user_preferences(tool_context) -> str:
     """
     Get current user preferences for life guidance including name, life experience level,
     communication style, focus areas, and goals.
+
+    Args:
+        tool_context: ADK ToolContext providing access to session state
 
     Returns:
         str: Formatted summary of current user preferences.
     """
     try:
-        # NOTE: In actual ADK usage, session_state would be accessed via ToolContext
-        # This is a simplified version - in real implementation you'd need to access
-        # session state through the context parameter provided by ADK
-        session_state = {}  # This would come from ToolContext in actual usage
+        # Get session state from ADK ToolContext
+        session_state = getattr(tool_context, 'state', {}) if tool_context else {}
         preferences = service_get_user_preferences(session_state)
 
         summary = format_preferences_summary(preferences)
@@ -47,20 +49,21 @@ def get_user_preferences() -> str:
         return f"Error: Failed to get user preferences: {str(e)}"
 
 
-def set_user_preference(preference_name: str, preference_value: str) -> str:
+def set_user_preference(preference_name: str, preference_value: str, tool_context) -> str:
     """
     Set a specific user life guidance preference.
 
     Args:
         preference_name: Name of the preference to set (e.g., 'name', 'life_experience_level', 'communication_style')
         preference_value: Value to set for the preference
+        tool_context: ADK ToolContext providing access to session state
 
     Returns:
         str: Status message indicating success or failure.
     """
     try:
-        # NOTE: In actual ADK usage, session_state would be accessed via ToolContext
-        session_state = {}  # This would come from ToolContext in actual usage
+        # Get session state from ADK ToolContext
+        session_state = getattr(tool_context, 'state', {}) if tool_context else {}
         preferences = service_get_user_preferences(session_state)
 
         # Handle different preference types for life guidance
@@ -132,19 +135,20 @@ def set_user_preference(preference_name: str, preference_value: str) -> str:
         return f"Error: Failed to set preference: {str(e)}"
 
 
-def analyze_message_for_preferences(message: str) -> str:
+def analyze_message_for_preferences(message: str, tool_context) -> str:
     """
     Analyze a user message to detect and update life guidance preferences automatically.
 
     Args:
         message: The user's message to analyze for preference indicators
+        tool_context: ADK ToolContext providing access to session state
 
     Returns:
         str: Status message indicating what preferences were detected and updated.
     """
     try:
-        # NOTE: In actual ADK usage, session_state would be accessed via ToolContext
-        session_state = {}  # This would come from ToolContext in actual usage
+        # Get session state from ADK ToolContext
+        session_state = getattr(tool_context, 'state', {}) if tool_context else {}
 
         # Store original preferences for comparison
         original_prefs = service_get_user_preferences(session_state)
@@ -203,16 +207,19 @@ def analyze_message_for_preferences(message: str) -> str:
         return f"Error: Failed to analyze message: {str(e)}"
 
 
-def get_personalization_context() -> str:
+def get_personalization_context(tool_context) -> str:
     """
     Get context for personalizing life guidance agent responses based on user preferences.
+
+    Args:
+        tool_context: ADK ToolContext providing access to session state
 
     Returns:
         str: Personalization context for guiding agent responses.
     """
     try:
-        # NOTE: In actual ADK usage, session_state would be accessed via ToolContext
-        session_state = {}  # This would come from ToolContext in actual usage
+        # Get session state from ADK ToolContext
+        session_state = getattr(tool_context, 'state', {}) if tool_context else {}
         preferences = service_get_user_preferences(session_state)
 
         personalization_context = get_personalized_instruction_context(preferences)
