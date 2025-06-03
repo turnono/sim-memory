@@ -3,6 +3,10 @@ RAG Memory Service for Life Guidance
 
 Provides memory storage and retrieval capabilities using Google Cloud Vertex AI RAG
 for the life guidance system. Handles user memories, conversation history, and context.
+
+Now includes ADK-aligned hybrid routing for cost optimization:
+- Simple queries -> fast keyword search (cost-effective)
+- Complex queries -> semantic RAG search (powerful)
 """
 
 import asyncio
@@ -58,6 +62,105 @@ try:
 except ImportError as e:
     VERTEXAI_AVAILABLE = False
     rag = None
+
+
+# ADK-Aligned Hybrid Memory Configuration
+HYBRID_CONFIG = {
+    "enabled": os.getenv("HYBRID_MEMORY_MODE", "true").lower() == "true",
+    "semantic_keywords": [
+        "analyze",
+        "pattern",
+        "review",
+        "all",
+        "journey",
+        "summarize",
+        "insights",
+        "trends",
+    ],
+    "transparent_communication": os.getenv(
+        "TRANSPARENT_MEMORY_COMMUNICATION", "true"
+    ).lower()
+    == "true",
+}
+
+
+def classify_query_complexity(query: str) -> str:
+    """
+    ADK-aligned simple query classification for routing.
+
+    Args:
+        query: User's memory search query
+
+    Returns:
+        "complex" for semantic search, "simple" for keyword search
+    """
+    if not HYBRID_CONFIG["enabled"]:
+        return "complex"  # Default to semantic if hybrid disabled
+
+    query_lower = query.lower()
+
+    # Check for complex analysis keywords
+    if any(keyword in query_lower for keyword in HYBRID_CONFIG["semantic_keywords"]):
+        return "complex"
+
+    # Default to simple for cost optimization
+    return "simple"
+
+
+async def search_memories_hybrid(
+    user_id: str, query: str, force_semantic: bool = False
+) -> Dict[str, Any]:
+    """
+    ADK-aligned hybrid memory search with intelligent routing.
+
+    Args:
+        user_id: User identifier
+        query: Search query
+        force_semantic: Force semantic search regardless of classification
+
+    Returns:
+        Dict with memories, method used, and transparent communication
+    """
+    try:
+        # Determine search method
+        if force_semantic:
+            complexity = "complex"
+            reason = "Forced semantic analysis"
+        else:
+            complexity = classify_query_complexity(query)
+            reason = "Automatic classification"
+
+        # Route to appropriate search method
+        if complexity == "complex":
+            memories = await _semantic_memory_search(user_id, query)
+            method = "semantic_search"
+            cost = "high"
+            message = f"🧠 Used deep semantic analysis ({reason})"
+        else:
+            memories = await _keyword_memory_search(user_id, query)
+            method = "keyword_search"
+            cost = "low"
+            message = f"🔍 Used efficient keyword search ({reason})"
+
+        return {
+            "status": "success",
+            "memories": memories,
+            "method_used": method,
+            "cost_level": cost,
+            "message": message if HYBRID_CONFIG["transparent_communication"] else "",
+            "query": query,
+        }
+
+    except Exception as e:
+        logger.error(f"Hybrid memory search failed: {e}")
+        return {
+            "status": "error",
+            "memories": [],
+            "method_used": "error_fallback",
+            "cost_level": "none",
+            "message": "⚠️ Memory search temporarily unavailable",
+            "query": query,
+        }
 
 
 def get_storage_client():

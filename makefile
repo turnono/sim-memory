@@ -132,6 +132,28 @@ eval-memory-subagent-cost-optimized:
 	@echo "[Eval Memory Subagent - Cost Optimized] Testing memory subagent with cost optimization..."
 	USE_EVAL_AGENT=true RAG_COST_OPTIMIZED=true MAX_CORPORA_SEARCH=1 PROJECT_ID=${GOOGLE_CLOUD_PROJECT} LOCATION=${GOOGLE_CLOUD_LOCATION} REASONING_ENGINE_ID=${REASONING_ENGINE_ID} python evals/memory_subagent_evals.py
 
+# Hybrid Memory System Evaluations
+eval-hybrid-memory:
+	@echo "[Eval Hybrid Memory] Testing hybrid memory system..."
+	PYTHONPATH=$(PWD) PROJECT_ID=taajirah LOCATION=us-central1 python evals/hybrid_memory_evals.py
+
+eval-hybrid-memory-cost-optimized:
+	@echo "[Eval Hybrid Memory - Cost Optimized] Testing hybrid memory with cost optimization..."
+	USE_EVAL_AGENT=true RAG_COST_OPTIMIZED=true MAX_SEMANTIC_CALLS_PER_DAY=5 PROJECT_ID=${GOOGLE_CLOUD_PROJECT} LOCATION=${GOOGLE_CLOUD_LOCATION} python evals/hybrid_memory_evals.py
+
+test-hybrid-memory:
+	@echo "[Test Hybrid Memory] Quick hybrid memory system test..."
+	PROJECT_ID=${GOOGLE_CLOUD_PROJECT} LOCATION=${GOOGLE_CLOUD_LOCATION} python -c "import asyncio; from sim_guide.services.hybrid_memory_service import health_check_hybrid; result = asyncio.run(health_check_hybrid()); print('✅ Hybrid Memory Service healthy' if result.get('status') in ['healthy', 'degraded'] else '❌ Hybrid Memory Service failed'); print(f'Status: {result.get(\"status\")}, Message: {result.get(\"message\")}')"
+
+# Cost optimization and configuration
+config-hybrid-memory:
+	@echo "[Config] Hybrid Memory Configuration:"
+	@echo "• HYBRID_MEMORY_MODE=${HYBRID_MEMORY_MODE:-true}"
+	@echo "• MAX_SEMANTIC_CALLS_PER_DAY=${MAX_SEMANTIC_CALLS_PER_DAY:-10}"
+	@echo "• MAX_SEMANTIC_CALLS_PER_WEEK=${MAX_SEMANTIC_CALLS_PER_WEEK:-50}"
+	@echo "• RAG_COST_OPTIMIZED=${RAG_COST_OPTIMIZED:-false}"
+	@echo "• TRANSPARENT_MEMORY_COMMUNICATION=${TRANSPARENT_MEMORY_COMMUNICATION:-true}"
+
 # Documentation and URLs
 docs:
 	@echo "[Documentation] Opening project documentation..."
