@@ -318,7 +318,7 @@ if __name__ == "__main__":
     except KeyboardInterrupt:
         print("\n⏹️  Evaluation interrupted by user")
     except Exception as e:
-        print(f"\n�� Evaluation failed: {e}")
+        print(f"\n❌ Evaluation failed: {e}")
         import traceback
 
         traceback.print_exc()
