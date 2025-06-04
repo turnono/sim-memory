@@ -6,4 +6,4 @@ improvement and meta-cognitive capabilities.
 """
 
 # Future tools will be added here as needed
-__all__ = [] 
+__all__ = []

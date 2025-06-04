@@ -6,7 +6,7 @@ and decision-making style while providing comprehensive business strategy guidan
 
 Features hierarchical sub-agents for specialized domains:
 - Marketing Strategy
-- Financial Strategy  
+- Financial Strategy
 - Operations Strategy
 - Product Strategy
 - Growth Strategy
@@ -124,4 +124,4 @@ __all__ = [
     "operations_strategist",
     "product_strategist",
     "growth_strategist",
-] 
+]

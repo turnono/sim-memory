@@ -13,7 +13,9 @@ import sys
 from pathlib import Path
 from sim_guide.agent import root_agent
 from sim_guide.sub_agents.user_context_manager import user_context_manager
-from sim_guide.sub_agents.user_context_manager.services.rag_memory_service import RAG_COST_OPTIMIZED
+from sim_guide.sub_agents.user_context_manager.services.rag_memory_service import (
+    RAG_COST_OPTIMIZED,
+)
 
 # Add project root to path for imports
 project_root = Path(__file__).parent.parent

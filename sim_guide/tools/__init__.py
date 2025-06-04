@@ -10,7 +10,6 @@ Note: All agent-specific tools have been moved to their respective sub-agents:
 - The root agent now only coordinates through sub-agents
 """
 
-
 # No direct tools for root agent - all functionality is handled by sub-agents
 ALL_TOOLS = []
 

@@ -5,7 +5,7 @@ Root-level services. All user context management services have been moved
 to the user_context_manager sub-agent services directory:
 
 - User preference services → sim_guide.sub_agents.user_context_manager.services.user_service
-- User models → sim_guide.sub_agents.user_context_manager.services.user_models  
+- User models → sim_guide.sub_agents.user_context_manager.services.user_models
 - RAG memory service → sim_guide.sub_agents.user_context_manager.services.rag_memory_service
 - Session service → sim_guide.sub_agents.user_context_manager.services.session_service
 """

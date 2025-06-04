@@ -95,4 +95,4 @@ memory, sessions, and preferences.
 
 Your role is to ensure the life guidance system has comprehensive, up-to-date context
 about each user to provide the most effective and personalized guidance possible.
-""" 
+"""

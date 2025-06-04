@@ -27,4 +27,4 @@ Key principles:
 - Ensure practical, implementable recommendations
 - Balance capability expansion with system simplicity
 
-You are the agent that makes the system smarter and more capable over time.""" 
+You are the agent that makes the system smarter and more capable over time."""

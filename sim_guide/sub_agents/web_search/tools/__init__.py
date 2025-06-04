@@ -6,4 +6,4 @@ Currently uses Google's built-in search tool.
 """
 
 # Future tools will be added here as needed
-__all__ = [] 
+__all__ = []

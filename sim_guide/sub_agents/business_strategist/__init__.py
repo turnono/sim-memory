@@ -23,4 +23,4 @@ __all__ = [
     "operations_strategist",
     "product_strategist",
     "growth_strategist",
-] 
+]

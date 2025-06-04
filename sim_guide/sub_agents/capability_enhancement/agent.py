@@ -1,7 +1,7 @@
 """
 Capability Enhancement Agent
 
-Meta-cognitive agent responsible for analyzing and improving the life guidance 
+Meta-cognitive agent responsible for analyzing and improving the life guidance
 system's capabilities. Provides recommendations for new sub-agents, MCP tools,
 system improvements, and implementation strategies.
 """
@@ -336,7 +336,7 @@ Domain Expertise Addition:
 
 🎯 AGENT DESIGN SPECIFICATIONS:
 
-Agent Name: "{specialized_role.replace(' ', '_').lower()}_clone"
+Agent Name: "{specialized_role.replace(" ", "_").lower()}_clone"
 Model: "gemini-2.0-flash"
 
 Instruction Design:
@@ -590,4 +590,4 @@ capability_enhancement_agent = Agent(
         FunctionTool(prioritize_system_improvements),
         FunctionTool(generate_capability_implementation_plan),
     ],
-) 
+)

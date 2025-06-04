@@ -43,4 +43,4 @@ def get_web_search_agent():
 
 
 # Export for use in main agent
-__all__ = ["web_search_agent", "get_web_search_agent"] 
+__all__ = ["web_search_agent", "get_web_search_agent"]

@@ -15,8 +15,8 @@ from .business_strategy import (
 
 __all__ = [
     "get_business_strategy_advice",
-    "analyze_business_opportunity", 
+    "analyze_business_opportunity",
     "get_business_strategic_plan",
     "get_competitive_analysis",
     "invoke_business_strategist",
-] 
+]

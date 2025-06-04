@@ -7,4 +7,4 @@ and user preference handling.
 
 from .agent import user_context_manager
 
-__all__ = ["user_context_manager"] 
+__all__ = ["user_context_manager"]

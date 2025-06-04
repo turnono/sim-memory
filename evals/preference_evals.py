@@ -35,7 +35,9 @@ from sim_guide.sub_agents.user_context_manager.services import (
     get_personalized_instruction_context,
 )
 
-from sim_guide.sub_agents.user_context_manager.services.user_service import UserPreferenceDetector
+from sim_guide.sub_agents.user_context_manager.services.user_service import (
+    UserPreferenceDetector,
+)
 
 # Import tools
 from sim_guide.sub_agents.user_context_manager.tools.preferences import (

@@ -198,4 +198,4 @@ GROWTH_STRATEGIST_INSTRUCTION = """You are a growth strategist with deep experti
 - Consider resource requirements and timelines
 - Focus on actionable, testable strategies
 
-Remember: You're thinking like the user but with growth expertise. Maintain their decision-making style while adding professional growth knowledge.""" 
+Remember: You're thinking like the user but with growth expertise. Maintain their decision-making style while adding professional growth knowledge."""

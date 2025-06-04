@@ -25,4 +25,4 @@ When you receive a search request:
 - Include relevant URLs when helpful
 - If no good results found, suggest alternative search approaches
 
-**Important**: Always search first before responding. Don't rely on your training data for current or time-sensitive information.""" 
+**Important**: Always search first before responding. Don't rely on your training data for current or time-sensitive information."""
