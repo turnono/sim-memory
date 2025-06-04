@@ -102,7 +102,7 @@ PROJECT_ID=taajirah-agents LOCATION=us-central1 python -c "
 import asyncio
 import sys
 sys.path.append('.')
-from sim_guide.rag_memory_service import health_check
+from sim_guide.sub_agents.user_context_manager.services.rag_memory_service import health_check
 result = asyncio.run(health_check())
 print('Health Check Result:', result)
 if result['status'] == 'healthy':
