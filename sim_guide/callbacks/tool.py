@@ -352,8 +352,9 @@ def _handle_memory_tool_response(
                     loop.run_until_complete(
                         rag_memory_service.add_memory_from_conversation(
                             user_id=user_id,
-                            conversation_data=memory_content,
-                            metadata={"tool_name": tool_name, "session_id": session_id},
+                            session_id=session_id,
+                            conversation_text=memory_content,
+                            memory_type=f"tool_response_{tool_name}",
                         )
                     )
                     loop.close()
