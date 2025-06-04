@@ -325,7 +325,7 @@ class SessionServiceEvals:
 
             response = await send_message(user_id, session_id, "")
             # Should handle empty message gracefully
-            assert "status" in response
+            assert response["status"] == "success"
 
             results["passed"] = True
             results["details"] = {
