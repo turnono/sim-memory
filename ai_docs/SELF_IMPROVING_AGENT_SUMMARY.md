@@ -97,7 +97,7 @@ User Interaction → Gap Recognition → Capability Analysis → Enhancement Sug
 ```python
 # Agent now includes meta-cognitive capabilities
 tools=[
-    AgentTool(agent=memory_agent),           # User context management
+    AgentTool(agent=user_context_manager),           # User context management
     AgentTool(agent=capability_enhancement_agent),  # Self-improvement
 ]
 ```

@@ -26,7 +26,7 @@ We've successfully implemented a **memory management subagent** that separates m
 
 ## Implementation Details
 
-### Memory Subagent (`sim_guide/agents/memory_agent.py`)
+### Memory Subagent (`sim_guide/agents/user_context_manager.py`)
 
 The memory subagent provides these specialized functions:
 
@@ -52,10 +52,10 @@ The main agent now uses the memory subagent via AgentTool:
 
 ```python
 from google.adk.tools.agent_tool import AgentTool
-from .sub_agents.memory_agent import memory_agent
+from .sub_agents.user_context_manager import user_context_manager
 
 # Create AgentTool from memory agent
-memory_tool = AgentTool(agent=memory_agent)
+memory_tool = AgentTool(agent=user_context_manager)
 ```
 
 **Benefits:**
@@ -70,7 +70,7 @@ memory_tool = AgentTool(agent=memory_agent)
 sim_guide/
 ├── agents/                    # New agents directory
 │   ├── __init__.py           # Agents module initialization
-│   └── memory_agent.py       # Memory management subagent
+│   └── user_context_manager.py       # Memory management subagent
 ├── agent.py                  # Main agent (updated)
 ├── tools/                    # Function-based tools only
 │   ├── __init__.py          # Updated (memory tools removed)
@@ -86,10 +86,10 @@ sim_guide/
 ### Direct Memory Subagent Access
 
 ```python
-from sim_guide.sub_agents.memory_agent import memory_agent
+from sim_guide.sub_agents.user_context_manager import user_context_manager
 
 # Direct interaction with memory subagent
-result = await memory_agent.invoke("search my memories for career advice")
+result = await user_context_manager.invoke("search my memories for career advice")
 ```
 
 ### Main Agent Delegation

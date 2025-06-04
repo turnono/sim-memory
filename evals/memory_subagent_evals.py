@@ -12,7 +12,7 @@ import time
 import sys
 from pathlib import Path
 from sim_guide.agent import root_agent
-from sim_guide.sub_agents.memory_agent import memory_agent
+from sim_guide.sub_agents.user_context_manager import user_context_manager
 
 # Add project root to path for imports
 project_root = Path(__file__).parent.parent
@@ -49,21 +49,23 @@ class MemorySubagentEvals:
 
             # Since we can't easily test the Agent directly without ADK runners,
             # we'll test the underlying functions
-            from sim_guide.sub_agents.memory_agent import get_memory_system_status
+            from sim_guide.sub_agents.user_context_manager import (
+                get_memory_system_status,
+            )
 
             status = await get_memory_system_status()
             print(f"    Memory system status: {status}")
 
             # Test knowledge base search
             print("  Testing knowledge base search...")
-            from sim_guide.sub_agents.memory_agent import search_knowledge_base
+            from sim_guide.sub_agents.user_context_manager import search_knowledge_base
 
             kb_result = await search_knowledge_base("career guidance")
             print(f"    Knowledge base search result: {kb_result[:100]}...")
 
             # Test user memory search (will likely return no results but should not error)
             print("  Testing user memory search...")
-            from sim_guide.sub_agents.memory_agent import search_user_memories
+            from sim_guide.sub_agents.user_context_manager import search_user_memories
 
             user_memories = await search_user_memories("career goals", "test_user")
             print(f"    User memory search result: {user_memories[:100]}...")
@@ -179,10 +181,10 @@ class MemorySubagentEvals:
             print("  Checking separation of concerns...")
 
             # Memory agent should only have memory-related tools
-            memory_agent_tools = getattr(memory_agent, "tools", [])
+            user_context_manager_tools = getattr(user_context_manager, "tools", [])
             memory_tool_names = []
 
-            for tool in memory_agent_tools:
+            for tool in user_context_manager_tools:
                 if hasattr(tool, "func"):
                     memory_tool_names.append(tool.func.__name__)
 
@@ -219,8 +221,10 @@ class MemorySubagentEvals:
             )
 
             # Check modularity - memory agent should be self-contained
-            memory_agent_instruction = getattr(memory_agent, "instruction", "")
-            focused_instruction = len(memory_agent_instruction) < len(
+            user_context_manager_instruction = getattr(
+                user_context_manager, "instruction", ""
+            )
+            focused_instruction = len(user_context_manager_instruction) < len(
                 getattr(root_agent, "instruction", "")
             )
 

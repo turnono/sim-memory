@@ -199,7 +199,7 @@ Creates specialized versions of the user with expert knowledge:
 ```python
 # Main agent includes capability enhancement
 tools=[
-    AgentTool(agent=memory_agent),
+    AgentTool(agent=user_context_manager),
     AgentTool(agent=capability_enhancement_agent),
 ]
 ```

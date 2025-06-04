@@ -11,7 +11,7 @@ import asyncio
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from sim_guide.sub_agents.memory_agent import (
+from sim_guide.sub_agents.user_context_manager import (
     store_conversation_memory,
     search_meaningful_memories,
 )

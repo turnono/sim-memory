@@ -10,7 +10,7 @@ from .callbacks.tool import before_tool_callback, after_tool_callback
 from .prompts import PROMPT
 
 # Import the sub_agents
-from .sub_agents.memory_agent import memory_agent
+from .sub_agents import user_context_manager
 from .sub_agents.capability_enhancement_agent import capability_enhancement_agent
 from .sub_agents.web_search_agent import web_search_agent
 from .sub_agents.business_strategist_agent import business_strategist
@@ -29,7 +29,7 @@ root_agent = Agent(
     before_tool_callback=before_tool_callback,
     after_tool_callback=after_tool_callback,
     tools=[
-        AgentTool(agent=memory_agent),
+        AgentTool(agent=user_context_manager),
         AgentTool(agent=capability_enhancement_agent),
         AgentTool(agent=web_search_agent),
         AgentTool(agent=business_strategist),

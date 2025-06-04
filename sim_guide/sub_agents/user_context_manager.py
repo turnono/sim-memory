@@ -415,8 +415,8 @@ preference_tools = [
 all_memory_tools = memory_tools + session_tools + preference_tools
 
 # Memory Management Agent
-memory_agent = Agent(
-    name="memory_agent",
+user_context_manager = Agent(
+    name="user_context_manager",
     model="gemini-2.0-flash",
     description="""
     Specialized agent for comprehensive user context management with hybrid memory approach.
@@ -440,7 +440,7 @@ memory_agent = Agent(
     to provide deep insights when needed for life guidance and pattern recognition.
     """,
     instruction="""
-    You are the Memory Management Agent responsible for all user context operations.
+    You are the User Context Manager responsible for all user context operations.
     
     **Memory Operation Guidelines:**
     
