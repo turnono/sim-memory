@@ -27,8 +27,8 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 # Use the same environment variables as the rest of the system
-PROJECT_ID = os.getenv("GOOGLE_CLOUD_PROJECT") or os.getenv("PROJECT_ID")
-LOCATION = os.getenv("GOOGLE_CLOUD_LOCATION") or os.getenv("LOCATION")
+PROJECT_ID = os.getenv("GOOGLE_CLOUD_PROJECT")
+LOCATION = os.getenv("GOOGLE_CLOUD_LOCATION")
 
 # RAG Memory Service Configuration
 RAG_SERVICE_CONFIG = {

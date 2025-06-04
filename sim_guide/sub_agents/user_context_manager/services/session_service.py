@@ -17,8 +17,8 @@ from google.genai import types
 logger = logging.getLogger(__name__)
 
 # Configuration
-PROJECT_ID = os.getenv("GOOGLE_CLOUD_PROJECT") or os.getenv("PROJECT_ID")
-LOCATION = os.getenv("GOOGLE_CLOUD_LOCATION") or os.getenv("LOCATION")
+PROJECT_ID = os.getenv("GOOGLE_CLOUD_PROJECT")
+LOCATION = os.getenv("GOOGLE_CLOUD_LOCATION")
 REASONING_ENGINE_ID = os.getenv("REASONING_ENGINE_ID")
 # Add flag to use cost-optimized agent for evaluations
 USE_EVAL_AGENT = os.getenv("USE_EVAL_AGENT", "false").lower() == "true"
