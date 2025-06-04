@@ -219,7 +219,7 @@ curl -X POST "https://your-service-url.run.app/apps/sim-guide/users/test/session
 # Test RAG health (if configured)
 PROJECT_ID=your-project LOCATION=us-central1 python -c "
 import asyncio;
-from sim_guide.rag_memory_service import health_check;
+from sim_guide.sub_agents.user_context_manager.services.rag_memory_service import health_check;
 print(asyncio.run(health_check()))
 "
 ```
@@ -233,7 +233,7 @@ sim-memory/
 ├── sim_guide/              # Agent implementation
 │   ├── agent.py            # Main agent configuration
 │   ├── session_service.py  # Session service setup
-│   └── rag_memory_service.py # RAG memory service
+│   └── sub_agents/user_context_manager/services/rag_memory_service.py # RAG memory service
 ├── evals/                  # Evaluation framework
 │   ├── session_evals.py    # Session service tests
 │   └── rag_memory_evals.py # RAG memory tests
@@ -247,7 +247,7 @@ sim-memory/
 ### Key Files
 
 - `sim_guide/agent.py` - Agent configuration with VertexAI session service
-- `sim_guide/rag_memory_service.py` - RAG memory operations and management
+- `sim_guide/sub_agents/user_context_manager/services/rag_memory_service.py` - RAG memory operations and management
 - `evals/rag_memory_evals.py` - Comprehensive RAG testing suite
 - `RAG_SETUP_GUIDE.md` - Step-by-step RAG configuration guide
 - `makefile` - All deployment and testing commands

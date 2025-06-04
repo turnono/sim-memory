@@ -47,7 +47,7 @@ test-session:
 # Test the RAG memory service health
 test-rag:
 	@echo "[Test] Testing RAG memory service health..."
-	PROJECT_ID=${GOOGLE_CLOUD_PROJECT} LOCATION=${GOOGLE_CLOUD_LOCATION} python -c "import asyncio; from sim_guide.rag_memory_service import health_check; result = asyncio.run(health_check()); print('✅ RAG Memory Service healthy' if result.get('status') in ['healthy', 'degraded'] else '❌ RAG Memory Service failed'); print(f'Status: {result.get(\"status\")}, Duration: {result.get(\"duration_seconds\", 0):.2f}s')"
+	PROJECT_ID=${GOOGLE_CLOUD_PROJECT} LOCATION=${GOOGLE_CLOUD_LOCATION} python -c "import asyncio; from sim_guide.sub_agents.user_context_manager.services.rag_memory_service import health_check; result = asyncio.run(health_check()); print('✅ RAG Memory Service healthy' if result.get('status') in ['healthy', 'degraded'] else '❌ RAG Memory Service failed'); print(f'Status: {result.get(\"status\")}, Duration: {result.get(\"duration_seconds\", 0):.2f}s')"
 
 test-agent:
 	@echo "[Agent Test] Testing the agent configuration..."
