@@ -205,10 +205,11 @@ class UserPreferenceDetector:
         for pattern in goal_patterns:
             matches = re.findall(pattern, text_lower)
             for match in matches:
-                goal = match.strip().capitalize()
-                if goal and goal not in updated_prefs.current_life_goals:
-                    updated_prefs.current_life_goals.append(goal)
-                    logger.info(f"Detected life goal: {goal}")
+                if match:  # Check if match is not None or empty
+                    goal = match.strip().capitalize()
+                    if goal and goal not in updated_prefs.current_life_goals:
+                        updated_prefs.current_life_goals.append(goal)
+                        logger.info(f"Detected life goal: {goal}")
 
         # Update metadata
         updated_prefs.total_interactions += 1
