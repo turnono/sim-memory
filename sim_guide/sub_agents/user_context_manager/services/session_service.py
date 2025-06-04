@@ -17,8 +17,8 @@ from google.genai import types
 logger = logging.getLogger(__name__)
 
 # Configuration
-PROJECT_ID = os.getenv("PROJECT_ID")
-LOCATION = os.getenv("LOCATION")
+PROJECT_ID = os.getenv("GOOGLE_CLOUD_PROJECT") or os.getenv("PROJECT_ID")
+LOCATION = os.getenv("GOOGLE_CLOUD_LOCATION") or os.getenv("LOCATION")
 REASONING_ENGINE_ID = os.getenv("REASONING_ENGINE_ID")
 # Add flag to use cost-optimized agent for evaluations
 USE_EVAL_AGENT = os.getenv("USE_EVAL_AGENT", "false").lower() == "true"
@@ -44,7 +44,9 @@ def get_root_agent():
 def _validate_environment():
     """Validate environment variables when needed"""
     if not all([PROJECT_ID, LOCATION, REASONING_ENGINE_ID]):
-        raise ValueError("PROJECT_ID, LOCATION, and REASONING_ENGINE_ID must be set")
+        raise ValueError(
+            "GOOGLE_CLOUD_PROJECT, GOOGLE_CLOUD_LOCATION, and REASONING_ENGINE_ID must be set"
+        )
 
 
 # Clean up any quotes from environment variables
