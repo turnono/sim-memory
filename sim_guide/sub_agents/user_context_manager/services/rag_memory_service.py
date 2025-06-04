@@ -27,8 +27,8 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 # Use the same environment variables as the rest of the system
-PROJECT_ID = os.getenv("GOOGLE_CLOUD_PROJECT")  # Changed from PROJECT_ID
-LOCATION = os.getenv("GOOGLE_CLOUD_LOCATION")  # Changed from LOCATION
+PROJECT_ID = os.getenv("GOOGLE_CLOUD_PROJECT") or os.getenv("PROJECT_ID")
+LOCATION = os.getenv("GOOGLE_CLOUD_LOCATION") or os.getenv("LOCATION")
 
 # RAG Memory Service Configuration
 RAG_SERVICE_CONFIG = {
@@ -37,7 +37,7 @@ RAG_SERVICE_CONFIG = {
 
 if not all([PROJECT_ID, LOCATION]):
     logger.warning(
-        "GOOGLE_CLOUD_PROJECT and GOOGLE_CLOUD_LOCATION must be set for RAG Memory Service"
+        "GOOGLE_CLOUD_PROJECT and GOOGLE_CLOUD_LOCATION (or legacy PROJECT_ID/LOCATION) must be set for RAG Memory Service"
     )
     logger.warning("RAG Memory Service will operate in degraded mode")
 

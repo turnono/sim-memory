@@ -100,8 +100,6 @@ REASONING_ENGINE_ID=your-reasoning-engine-id
 AGENT_SERVICE_NAME=sim-guide-agent-service
 
 # For RAG Memory Service (optional)
-PROJECT_ID=your-project-id
-LOCATION=us-central1
 GOOGLE_APPLICATION_CREDENTIALS=./path-to-service-account.json
 ```
 
@@ -217,7 +215,7 @@ curl -X POST "https://your-service-url.run.app/apps/sim-guide/users/test/session
      -H "Content-Type: application/json" -d '{}'
 
 # Test RAG health (if configured)
-PROJECT_ID=your-project LOCATION=us-central1 python -c "
+GOOGLE_CLOUD_PROJECT=your-project GOOGLE_CLOUD_LOCATION=us-central1 python -c "
 import asyncio;
 from sim_guide.sub_agents.user_context_manager.services.rag_memory_service import health_check;
 print(asyncio.run(health_check()))
