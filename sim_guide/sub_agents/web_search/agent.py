@@ -28,6 +28,7 @@ web_search_agent = Agent(
     model="gemini-2.0-flash",  # Required for built-in tools
     description=DESCRIPTION,
     instruction=INSTRUCTION,
+    output_key="web_search_result",  # String key for search results
     tools=[google_search],  # Uses Google's built-in search tool
 )
 

@@ -1,0 +1,343 @@
+---
+description:
+globs:
+alwaysApply: false
+---
+# Testing Patterns for Sim-Memory
+
+## Test Suite Overview
+
+### Primary Test Files
+- [test_refactored_system.py](mdc:test_refactored_system.py) - Comprehensive system validation
+- [test_business_strategist.py](mdc:test_business_strategist.py) - Business agent testing  
+- [test_hybrid_memory.py](mdc:test_hybrid_memory.py) - Memory system testing
+
+## Comprehensive System Testing
+
+### Test Structure Pattern
+```python
+async def test_component_functionality():
+    """Test a specific component with proper error handling."""
+    print(f"\n🧪 Testing Component Functionality")
+    
+    try:
+        # Setup test conditions
+        test_input = "test data"
+        
+        # Execute functionality
+        result = await component_function(test_input)
+        
+        # Validate results
+        is_valid = isinstance(result, str) and len(result) > 0
+        print(f"   Component test: {'✅' if is_valid else '❌'}")
+        
+        return is_valid
+        
+    except Exception as e:
+        print(f"   ❌ Component test failed: {e}")
+        return False
+```
+
+### Test Categories
+
+#### 1. Agent Configuration Tests
+Verify agents are properly configured:
+
+```python
+async def test_agent_configuration():
+    """Test that agents have expected configuration."""
+    agents = {
+        "root_agent": root_agent,
+        "user_context_manager": user_context_manager,
+        "business_strategist": business_strategist,
+    }
+    
+    for name, agent in agents.items():
+        # Check required attributes
+        has_tools = hasattr(agent, 'tools')
+        has_model = hasattr(agent, 'model')
+        has_instruction = hasattr(agent, 'instruction')
+        has_output_key = hasattr(agent, 'output_key')
+        
+        if all([has_tools, has_model, has_instruction, has_output_key]):
+            print(f"   ✅ {name}: Properly configured")
+        else:
+            print(f"   ❌ {name}: Missing attributes")
+            return False
+    
+    return True
+```
+
+#### 2. Tool Functionality Tests
+Test individual tools work correctly:
+
+```python
+async def test_tool_functionality():
+    """Test that tools return expected results."""
+    # Create mock context for tools that need it
+    mock_context = MockToolContext()
+    
+    # Test memory tools
+    memory_result = load_life_guidance_memory("test query")
+    memory_works = isinstance(memory_result, str) and len(memory_result) > 0
+    
+    # Test preference tools
+    prefs_result = get_user_preferences(mock_context)  
+    prefs_works = isinstance(prefs_result, str) and len(prefs_result) > 0
+    
+    return memory_works and prefs_works
+```
+
+#### 3. Integration Tests
+Test agent-to-agent communication:
+
+```python
+async def test_agent_integration():
+    """Test agents work together correctly."""
+    # Test business strategist tools
+    strategy_result = await get_business_strategy_advice(
+        business_question="Test question",
+        business_context="Test context", 
+        user_style="Test style"
+    )
+    
+    # Validate structured response
+    is_comprehensive = len(strategy_result) > 100
+    has_actionable_content = "recommendation" in strategy_result.lower()
+    
+    return is_comprehensive and has_actionable_content
+```
+
+#### 4. Output Key Validation
+Ensure all agents have structured output:
+
+```python
+def test_output_keys():
+    """Verify all agents have output keys defined."""
+    agents_to_test = [
+        ("Root Agent", root_agent),
+        ("Business Strategist", business_strategist),
+        ("User Context Manager", user_context_manager),
+        # ... more agents
+    ]
+    
+    for agent_name, agent in agents_to_test:
+        output_key = getattr(agent, 'output_key', None)
+        if output_key and isinstance(output_key, str):
+            print(f"   ✅ {agent_name} → '{output_key}'")
+        else:
+            print(f"   ❌ {agent_name} → No valid output key")
+            return False
+    
+    return True
+```
+
+## Mock Objects for Testing
+
+### Mock Tool Context
+```python
+class MockToolContext:
+    """Mock tool context for testing."""
+    def __init__(self, user_id="test_user"):
+        self.user_id = user_id
+        self.state = {}
+        self.session = type('obj', (object,), {
+            'user_id': user_id,
+            'session_id': 'test_session'
+        })
+```
+
+### Mock Data Providers
+```python
+async def create_test_data():
+    """Create test data for comprehensive testing."""
+    return {
+        'user_query': 'How can I improve my business strategy?',
+        'user_context': 'Small business owner looking to grow',
+        'business_context': 'AI startup with growing user base',
+        'user_style': 'Data-driven, iterative approach'
+    }
+```
+
+## Test Runner Pattern
+
+### Main Test Function
+```python
+async def main():
+    """Run all tests with comprehensive reporting."""
+    print("🔄 COMPREHENSIVE SYSTEM TESTS")
+    print("=" * 80)
+    
+    tests = [
+        ("Agent Configuration", test_agent_configuration),
+        ("Tool Functionality", test_tool_functionality), 
+        ("Agent Integration", test_agent_integration),
+        ("Output Key Validation", test_output_keys),
+    ]
+    
+    results = []
+    for test_name, test_func in tests:
+        try:
+            result = await test_func()
+            results.append(result)
+            status = "✅ PASSED" if result else "❌ FAILED"
+            print(f"\n{test_name}: {status}")
+        except Exception as e:
+            print(f"\n{test_name}: ❌ ERROR - {e}")
+            results.append(False)
+    
+    # Generate summary
+    passed = sum(results)
+    total = len(results)
+    success_rate = (passed/total)*100
+    
+    print(f"\n{'=' * 80}")
+    print(f"FINAL SUMMARY: {passed}/{total} tests passed ({success_rate:.1f}%)")
+    
+    if passed == total:
+        print("🎉 All tests passed! System is working correctly.")
+    else:
+        print("⚠️ Some tests failed - review the issues")
+    
+    return passed == total
+```
+
+## Error Handling in Tests
+
+### Graceful Test Failures
+```python
+async def test_with_error_handling():
+    """Test with proper error handling and reporting."""
+    try:
+        # Test operation
+        result = await risky_operation()
+        
+        # Validate result
+        if result is None:
+            print("   ⚠️ Operation returned None")
+            return False
+            
+        if not isinstance(result, expected_type):
+            print(f"   ⚠️ Unexpected result type: {type(result)}")
+            return False
+            
+        print("   ✅ Test passed")
+        return True
+        
+    except ImportError as e:
+        print(f"   ❌ Import error: {e}")
+        return False
+    except Exception as e:
+        print(f"   ❌ Unexpected error: {e}")
+        return False
+```
+
+### Test Data Validation
+```python
+def validate_test_result(result, expected_properties):
+    """Validate test results have expected properties."""
+    if not result:
+        return False, "Result is None or empty"
+        
+    for prop in expected_properties:
+        if prop not in result:
+            return False, f"Missing property: {prop}"
+            
+    return True, "Validation passed"
+```
+
+## Performance Testing
+
+### Response Time Testing
+```python
+import time
+
+async def test_performance():
+    """Test agent response times."""
+    start_time = time.time()
+    
+    result = await agent_function("test input")
+    
+    end_time = time.time()
+    response_time = end_time - start_time
+    
+    # Validate performance
+    is_fast_enough = response_time < 10.0  # 10 second threshold
+    print(f"   Response time: {response_time:.2f}s {'✅' if is_fast_enough else '❌'}")
+    
+    return is_fast_enough
+```
+
+## Test Organization Best Practices
+
+### Test File Structure
+```python
+#!/usr/bin/env python3
+"""
+Test Description
+
+Tests specific functionality with clear validation
+"""
+
+import asyncio
+import sys
+import os
+
+# Setup path
+sys.path.insert(0, os.path.abspath('.'))
+
+# Test functions
+async def test_specific_feature():
+    """Test with clear description."""
+    pass
+
+# Main runner
+async def main():
+    """Run all tests."""
+    pass
+
+if __name__ == "__main__":
+    success = asyncio.run(main())
+    sys.exit(0 if success else 1)
+```
+
+### Test Validation Criteria
+
+**For Agent Tests:**
+- ✅ Agent has all required attributes
+- ✅ Agent can be imported without errors  
+- ✅ Agent has proper output key configuration
+- ✅ Agent tools are functional
+
+**For Tool Tests:**
+- ✅ Tool returns expected data type
+- ✅ Tool handles invalid inputs gracefully
+- ✅ Tool produces meaningful results
+- ✅ Tool execution time is reasonable
+
+**For Integration Tests:**
+- ✅ Agents can communicate effectively
+- ✅ Data flows correctly between components
+- ✅ Error conditions are handled gracefully
+- ✅ System maintains consistency under load
+
+## Continuous Testing
+
+### Running Tests
+```bash
+# Run comprehensive system test
+python test_refactored_system.py
+
+# Run specific agent tests  
+python test_business_strategist.py
+
+# Run memory system tests
+python test_hybrid_memory.py
+```
+
+### Test Success Criteria
+- All imports successful
+- All agents properly configured
+- All tools functional
+- All integration points working
+- Performance within acceptable limits

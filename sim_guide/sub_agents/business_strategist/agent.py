@@ -36,6 +36,7 @@ from .tools import (
     invoke_business_strategist,
 )
 
+
 logger = logging.getLogger(__name__)
 
 
@@ -45,6 +46,7 @@ marketing_strategist = Agent(
     model="gemini-2.0-flash",
     description="Specialized marketing strategy expert for brand positioning, digital marketing, customer acquisition, and campaign optimization. Use for marketing questions.",
     instruction=MARKETING_STRATEGIST_INSTRUCTION,
+    output_key="marketing_strategy_response",  # String key for marketing strategies
 )
 
 # Finance Strategist Sub-Agent
@@ -53,6 +55,7 @@ finance_strategist = Agent(
     model="gemini-2.0-flash",
     description="Specialized financial strategy expert for financial planning, funding strategies, cost optimization, and investment decisions. Use for financial questions.",
     instruction=FINANCE_STRATEGIST_INSTRUCTION,
+    output_key="financial_strategy_response",  # String key for financial strategies
 )
 
 # Operations Strategist Sub-Agent
@@ -61,6 +64,7 @@ operations_strategist = Agent(
     model="gemini-2.0-flash",
     description="Specialized operations strategy expert for process optimization, systems implementation, scaling operations, and performance metrics. Use for operational questions.",
     instruction=OPERATIONS_STRATEGIST_INSTRUCTION,
+    output_key="business_strategy_response",  # String key for operations
 )
 
 # Product Strategist Sub-Agent
@@ -69,6 +73,7 @@ product_strategist = Agent(
     model="gemini-2.0-flash",
     description="Specialized product strategy expert for product-market fit, user experience, roadmap planning, and product analytics. Use for product development questions.",
     instruction=PRODUCT_STRATEGIST_INSTRUCTION,
+    output_key="business_strategy_response",  # String key for product
 )
 
 # Growth Strategist Sub-Agent
@@ -77,6 +82,7 @@ growth_strategist = Agent(
     model="gemini-2.0-flash",
     description="Specialized growth strategy expert for customer acquisition, growth hacking, viral mechanisms, and scaling strategies. Use for growth and expansion questions.",
     instruction=GROWTH_STRATEGIST_INSTRUCTION,
+    output_key="business_strategy_response",  # String key for growth
 )
 
 # Business strategy tools
@@ -94,6 +100,7 @@ business_strategist = Agent(
     model="gemini-2.0-flash",
     description=DESCRIPTION,
     instruction=INSTRUCTION,
+    output_key="business_strategy_response",  # String key for business strategy responses
     sub_agents=[
         marketing_strategist,
         finance_strategist,

@@ -518,7 +518,9 @@ async def _semantic_memory_search(user_id: str, query: str) -> List[str]:
                             conversation_part = conversation_part.split(
                                 "Memory Summary:"
                             )[0]
-                        if conversation_part:  # Check if conversation_part is not None or empty
+                        if (
+                            conversation_part
+                        ):  # Check if conversation_part is not None or empty
                             memories.append(conversation_part.strip())
                     else:
                         memories.append(content)

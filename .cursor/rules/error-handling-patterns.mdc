@@ -1,0 +1,213 @@
+---
+description:
+globs:
+alwaysApply: false
+---
+# Error Handling Patterns for Sim-Memory
+
+## Critical Error Prevention
+
+### NoneType String Method Errors
+The most common error pattern is calling string methods on None values.
+
+#### ✅ Safe Pattern - Always Check Before Strip
+```python
+# Safe: Check if match exists before calling strip()
+for match in matches:
+    if match:  # Prevents NoneType errors
+        goal = match.strip().capitalize()
+        if goal and goal not in updated_prefs.current_life_goals:
+            updated_prefs.current_life_goals.append(goal)
+```
+
+#### ❌ Unsafe Pattern - Direct Method Call
+```python
+# Unsafe: Can cause "'NoneType' object has no attribute 'strip'" error
+for match in matches:
+    goal = match.strip().capitalize()  # Error if match is None
+```
+
+### String Split Operations
+After splitting strings, always verify the result exists:
+
+#### ✅ Safe Pattern
+```python
+if "Conversation Content:" in content:
+    conversation_part = content.split("Conversation Content:")[1]
+    if "Memory Summary:" in conversation_part:
+        conversation_part = conversation_part.split("Memory Summary:")[0]
+    if conversation_part:  # Check before strip()
+        memories.append(conversation_part.strip())
+```
+
+#### ❌ Unsafe Pattern  
+```python
+conversation_part = content.split("Conversation Content:")[1]
+memories.append(conversation_part.strip())  # Error if None
+```
+
+## Common Vulnerable Locations
+
+### 1. Regular Expression Results
+- `re.findall()` can return empty matches
+- `re.search()` can return None
+- Always check before accessing `.group()` or calling string methods
+
+### 2. Dictionary Operations
+```python
+# Safe pattern
+value = dict.get('key')
+if value:
+    processed = value.strip()
+
+# Unsafe pattern  
+processed = dict.get('key').strip()  # Error if key doesn't exist
+```
+
+### 3. List/Array Access
+```python
+# Safe pattern
+if items and len(items) > 0:
+    first_item = items[0].strip()
+
+# Unsafe pattern
+first_item = items[0].strip()  # Error if list is empty
+```
+
+### 4. API Response Processing
+```python
+# Safe pattern
+response_data = api_call()
+if response_data and 'field' in response_data:
+    value = response_data['field'].strip()
+
+# Unsafe pattern
+value = api_call()['field'].strip()  # Multiple failure points
+```
+
+## Error Handling in Agents
+
+### Tool Function Error Handling
+All tool functions should include comprehensive error handling:
+
+```python
+async def my_tool_function(param: str) -> str:
+    """Tool function with proper error handling."""
+    try:
+        # Validate inputs
+        if not param or not isinstance(param, str):
+            return "Invalid input parameter"
+        
+        # Safe string processing
+        cleaned_param = param.strip() if param else ""
+        if not cleaned_param:
+            return "Empty parameter after cleaning"
+            
+        # Process and return
+        result = process_data(cleaned_param)
+        return result if result else "No results found"
+        
+    except Exception as e:
+        logger.error(f"Error in my_tool_function: {e}")
+        return f"Tool execution failed: {str(e)}"
+```
+
+### Service Error Handling
+Services should handle errors gracefully and provide meaningful fallbacks:
+
+```python
+async def search_memories(query: str):
+    """Memory search with error handling."""
+    try:
+        if not query or not query.strip():
+            return []
+            
+        # Safe processing
+        clean_query = query.strip().lower()
+        results = await perform_search(clean_query)
+        
+        # Validate results
+        if not results:
+            logger.info(f"No memories found for query: {query}")
+            return []
+            
+        # Process results safely
+        processed_results = []
+        for result in results:
+            if result and hasattr(result, 'content'):
+                content = result.content
+                if content and content.strip():
+                    processed_results.append(content.strip())
+                    
+        return processed_results
+        
+    except Exception as e:
+        logger.error(f"Memory search failed: {e}")
+        return []  # Graceful fallback
+```
+
+## Logging and Debugging
+
+### Comprehensive Logging
+```python
+import logging
+logger = logging.getLogger(__name__)
+
+# Log before operations that might fail
+logger.debug(f"Processing match: {match}")
+if match:
+    result = match.strip()
+    logger.debug(f"Processed result: {result}")
+else:
+    logger.warning("Match was None or empty")
+```
+
+### Debug Information
+Include context in error messages:
+
+```python
+try:
+    processed = data.strip()
+except AttributeError as e:
+    logger.error(f"AttributeError processing data: {data}, type: {type(data)}, error: {e}")
+    raise
+```
+
+## Testing Error Conditions
+
+### Unit Test Error Cases
+```python
+def test_error_handling():
+    """Test that functions handle None/empty inputs gracefully."""
+    
+    # Test None input
+    result = process_function(None)
+    assert result is not None, "Function should handle None input"
+    
+    # Test empty string
+    result = process_function("")
+    assert result is not None, "Function should handle empty string"
+    
+    # Test whitespace only
+    result = process_function("   ")
+    assert result is not None, "Function should handle whitespace"
+```
+
+## Prevention Checklist
+
+Before deploying code, verify:
+
+- [ ] All string method calls (`.strip()`, `.lower()`, etc.) are preceded by None checks
+- [ ] Dictionary access uses `.get()` with defaults or explicit None checks  
+- [ ] List/array access checks length before indexing
+- [ ] API responses are validated before processing
+- [ ] Regular expression results are checked before use
+- [ ] Tool functions include try-catch blocks
+- [ ] Error messages include helpful context
+- [ ] Fallback values are provided for failed operations
+
+## Files With Previous Issues
+
+Monitor these files for similar patterns:
+- [sim_guide/sub_agents/user_context_manager/services/user_service.py](mdc:sim_guide/sub_agents/user_context_manager/services/user_service.py) - Line 207 (fixed)
+- [sim_guide/sub_agents/user_context_manager/services/rag_memory_service.py](mdc:sim_guide/sub_agents/user_context_manager/services/rag_memory_service.py) - Line 520 (fixed)

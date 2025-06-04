@@ -76,6 +76,7 @@ user_context_manager = Agent(
     model="gemini-2.0-flash",
     description=DESCRIPTION,
     instruction=INSTRUCTION,
+    output_key="memory_search_result",  # String key for memory operations
     tools=all_user_context_tools,
 )
 

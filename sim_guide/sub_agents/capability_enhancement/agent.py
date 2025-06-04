@@ -582,6 +582,7 @@ capability_enhancement_agent = Agent(
     model="gemini-2.0-flash",
     description=DESCRIPTION,
     instruction=INSTRUCTION,
+    output_key="capability_gap_analysis",  # String key for capability analysis
     tools=[
         FunctionTool(analyze_capability_gaps),
         FunctionTool(suggest_new_subagents),
