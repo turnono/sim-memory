@@ -12,7 +12,7 @@ from datetime import datetime
 
 # Import the root agent and tools for testing
 from sim_guide.agent import root_agent
-from sim_guide.tools.business_strategy import (
+from sim_guide.sub_agents.business_strategist.tools.business_strategy import (
     get_business_strategy_advice,
     analyze_business_opportunity,
     get_business_strategic_plan,

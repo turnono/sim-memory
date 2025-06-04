@@ -29,7 +29,7 @@ from sim_guide.callbacks import (
     before_tool_callback,
     after_tool_callback,
 )
-from sim_guide.services.rag_memory_service import (
+from sim_guide.sub_agents.user_context_manager.services.rag_memory_service import (
     health_check,
     add_memory_from_conversation,
     retrieve_user_memories,

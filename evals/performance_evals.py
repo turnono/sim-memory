@@ -25,7 +25,7 @@ project_root = Path(__file__).parent.parent
 sys.path.insert(0, str(project_root))
 
 # Import session service functions directly
-from sim_guide.services.session_service import (
+from sim_guide.sub_agents.user_context_manager.services.session_service import (
     create_session,
     send_message,
     delete_session,

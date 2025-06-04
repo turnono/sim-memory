@@ -23,7 +23,7 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 # Import session service functions directly
-from sim_guide.services.session_service import (
+from sim_guide.sub_agents.user_context_manager.services.session_service import (
     create_session,
     send_message,
     get_session,

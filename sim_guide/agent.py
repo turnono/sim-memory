@@ -11,9 +11,9 @@ from .prompts import PROMPT
 
 # Import the sub_agents
 from .sub_agents import user_context_manager
-from .sub_agents.capability_enhancement_agent import capability_enhancement_agent
-from .sub_agents.web_search_agent import web_search_agent
-from .sub_agents.business_strategist_agent import business_strategist
+from .sub_agents import capability_enhancement_agent
+from .sub_agents import web_search_agent
+from .sub_agents import business_strategist
 
 # Import tools
 from .tools import ALL_TOOLS

@@ -1,44 +1,18 @@
 """
 Services Module for Life Guidance
 
-Contains business logic services that handle data processing, user management,
-session management, RAG memory, and other application logic following ADK best practices.
+Root-level services. All user context management services have been moved
+to the user_context_manager sub-agent services directory:
+
+- User preference services → sim_guide.sub_agents.user_context_manager.services.user_service
+- User models → sim_guide.sub_agents.user_context_manager.services.user_models  
+- RAG memory service → sim_guide.sub_agents.user_context_manager.services.rag_memory_service
+- Session service → sim_guide.sub_agents.user_context_manager.services.session_service
 """
 
-from .user_service import (
-    UserPreferenceDetector,
-    get_user_preferences,
-    update_user_preferences,
-    analyze_user_message_for_preferences,
-    format_preferences_summary,
-    get_personalized_instruction_context,
-)
-
-# Export user models
-from .user_models import (
-    UserPreferences,
-    LifeExperienceLevel,
-    CommunicationStyle,
-    LifeArea,
-)
-
-# Export RAG memory service functions (imported on demand)
-from . import rag_memory_service
-# Note: session_service not imported here to avoid circular dependency
+# All user context management services have been moved to the user_context_manager sub-agent
+# Import them from: sim_guide.sub_agents.user_context_manager.services
 
 __all__ = [
-    # User preference management functions
-    "get_user_preferences",
-    "update_user_preferences",
-    "analyze_user_message_for_preferences",
-    "format_preferences_summary",
-    "get_personalized_instruction_context",
-    # User models and enums
-    "UserPreferences",
-    "LifeExperienceLevel",
-    "CommunicationStyle",
-    "LifeArea",
-    # Service modules
-    "rag_memory_service",
-    # session_service available via direct import
+    # No services remain at root level - all moved to appropriate sub-agents
 ]

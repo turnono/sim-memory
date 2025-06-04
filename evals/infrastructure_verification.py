@@ -14,7 +14,7 @@ import asyncio
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from sim_guide.services.rag_memory_service import (
+from sim_guide.sub_agents.user_context_manager.services.rag_memory_service import (
     add_memory_from_conversation,
     retrieve_user_memories,
     health_check,

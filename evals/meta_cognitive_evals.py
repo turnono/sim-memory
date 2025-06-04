@@ -14,7 +14,7 @@ import logging
 # Add the project root to the Python path
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from sim_guide.sub_agents.capability_enhancement_agent import (
+from sim_guide.sub_agents.capability_enhancement.agent import (
     capability_enhancement_agent,
     analyze_capability_gaps,
     suggest_new_subagents,

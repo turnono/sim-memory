@@ -9,9 +9,9 @@ Contains specialized sub-agents for the simulation guidance system:
 """
 
 from .user_context_manager import user_context_manager
-from .capability_enhancement_agent import capability_enhancement_agent
-from .web_search_agent import web_search_agent
-from .business_strategist_agent import business_strategist, get_business_strategist
+from .capability_enhancement import capability_enhancement_agent
+from .web_search import web_search_agent
+from .business_strategist import business_strategist, get_business_strategist
 
 __all__ = [
     "user_context_manager",
