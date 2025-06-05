@@ -1,4 +1,4 @@
-include .env
+include sim_guide/.env
 export 
 
 firestore-emulator:

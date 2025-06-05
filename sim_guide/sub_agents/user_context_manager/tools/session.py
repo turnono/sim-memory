@@ -6,7 +6,6 @@ for better conversation continuity and user experience.
 """
 
 import logging
-from typing import Dict, Any, Optional
 
 logger = logging.getLogger(__name__)
 

@@ -79,17 +79,3 @@ user_context_manager = Agent(
     output_key="memory_search_result",  # String key for memory operations
     tools=all_user_context_tools,
 )
-
-
-def get_user_context_manager():
-    """
-    Returns the user context manager agent for use by the root agent.
-
-    Returns:
-        Agent: The configured user context manager with memory and session capabilities
-    """
-    return user_context_manager
-
-
-# Export for use in main agent
-__all__ = ["user_context_manager", "get_user_context_manager"]

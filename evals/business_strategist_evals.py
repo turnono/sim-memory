@@ -7,11 +7,10 @@ Tests functionality, delegation, context-passing, and business advice quality.
 
 import asyncio
 import logging
-from typing import Dict, List, Tuple
+from typing import Dict
 from datetime import datetime
 
-# Import the root agent and tools for testing
-from sim_guide.agent import root_agent
+
 from sim_guide.sub_agents.business_strategist.tools.business_strategy import (
     get_business_strategy_advice,
     analyze_business_opportunity,

@@ -4,14 +4,28 @@ Centralized session management for sim-memory application.
 Provides business logic and clean abstractions over VertexAI session service.
 """
 
-import os
 import logging
+import os
 from typing import Dict, Any, Optional, List
 from datetime import datetime, timezone
 import vertexai
 from google.adk.sessions import VertexAiSessionService
 from google.adk.runners import Runner
 from google.genai import types
+
+# Load .env file explicitly for Cloud Run compatibility
+try:
+    from dotenv import load_dotenv
+    # Try loading from current directory first, then parent
+    if os.path.exists('.env'):
+        load_dotenv('.env')
+    elif os.path.exists('../.env'):
+        load_dotenv('../.env')
+    elif os.path.exists('sim_guide/.env'):
+        load_dotenv('sim_guide/.env')
+except ImportError:
+    # dotenv not available, environment should be set by Cloud Run
+    pass
 
 # Set up logging
 logger = logging.getLogger(__name__)
@@ -20,8 +34,19 @@ logger = logging.getLogger(__name__)
 PROJECT_ID = os.getenv("GOOGLE_CLOUD_PROJECT")
 LOCATION = os.getenv("GOOGLE_CLOUD_LOCATION")
 REASONING_ENGINE_ID = os.getenv("REASONING_ENGINE_ID")
+APP_NAME = os.getenv("APP_NAME")
 # Add flag to use cost-optimized agent for evaluations
 USE_EVAL_AGENT = os.getenv("USE_EVAL_AGENT", "false").lower() == "true"
+REASONING_ENGINE_ID = REASONING_ENGINE_ID.strip("\"'")
+
+
+# Set up environment and Google Cloud credentials
+if not os.getenv("GOOGLE_APPLICATION_CREDENTIALS"):
+    # Only set for local development - Cloud Run handles credentials automatically
+    local_service_account = "./taajirah-agents-service-account.json"
+    if os.path.exists(local_service_account):
+        os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = local_service_account
+
 
 # Global instances - initialized lazily to avoid circular imports
 _vertex_session_service = None
@@ -49,17 +74,6 @@ def _validate_environment():
         )
 
 
-# Clean up any quotes from environment variables
-REASONING_ENGINE_ID = REASONING_ENGINE_ID.strip("\"'")
-
-# Set up environment and Google Cloud credentials
-if not os.getenv("GOOGLE_APPLICATION_CREDENTIALS"):
-    # Only set for local development - Cloud Run handles credentials automatically
-    local_service_account = "./taajirah-agents-service-account.json"
-    if os.path.exists(local_service_account):
-        os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = local_service_account
-
-
 # Initialize Vertex AI lazily
 def _get_vertex_session_service():
     """Get Vertex AI session service with lazy initialization"""
@@ -85,7 +99,7 @@ def _get_runner():
             _get_vertex_session_service()
         )  # Ensure vertex AI is initialized
         _runner = Runner(
-            app_name=REASONING_ENGINE_ID,
+            app_name=APP_NAME,
             agent=get_root_agent(),
             session_service=session_service,
         )
@@ -133,7 +147,7 @@ async def create_session(
 
         # Create session via VertexAI
         session = await _get_vertex_session_service().create_session(
-            app_name=REASONING_ENGINE_ID, user_id=user_id, state=session_state
+            app_name=APP_NAME, user_id=user_id, state=session_state
         )
 
         session_info = {
@@ -167,7 +181,7 @@ async def get_session(user_id: str, session_id: str) -> Dict[str, Any]:
     """
     try:
         session = await _get_vertex_session_service().get_session(
-            app_name=REASONING_ENGINE_ID, user_id=user_id, session_id=session_id
+            app_name=APP_NAME, user_id=user_id, session_id=session_id
         )
 
         # Ensure state is a dictionary - handle both dict and string cases
@@ -289,7 +303,7 @@ async def list_user_sessions(
     """
     try:
         sessions_response = await _get_vertex_session_service().list_sessions(
-            app_name=REASONING_ENGINE_ID, user_id=user_id
+            app_name=APP_NAME, user_id=user_id
         )
 
         # Handle different response formats
@@ -334,7 +348,7 @@ async def delete_session(user_id: str, session_id: str) -> bool:
     """
     try:
         await _get_vertex_session_service().delete_session(
-            app_name=REASONING_ENGINE_ID, user_id=user_id, session_id=session_id
+            app_name=APP_NAME, user_id=user_id, session_id=session_id
         )
 
         logger.info(f"Deleted session {session_id} for user {user_id}")

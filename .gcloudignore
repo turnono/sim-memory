@@ -36,6 +36,8 @@ venv.bak/
 .env*
 !.env.example
 
+sim_guide/.env
+
 # Docker files
 .dockerignore
 # Dockerfile

@@ -9,22 +9,33 @@ Now includes ADK-aligned hybrid routing for cost optimization:
 - Complex queries -> semantic RAG search (powerful)
 """
 
-import asyncio
 import logging
-import json
 import os
-from typing import Dict, Any, List, Optional, Union
+from typing import Dict, Any, List
 from datetime import datetime, timezone
 
 import vertexai
 from vertexai import rag
-from vertexai.generative_models import GenerativeModel, Tool
+from vertexai.generative_models import GenerativeModel
 from google.cloud import storage
-from google.oauth2 import service_account
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
+
+# Load .env file explicitly for Cloud Run compatibility
+try:
+    from dotenv import load_dotenv
+    # Try loading from current directory first, then parent
+    if os.path.exists('.env'):
+        load_dotenv('.env')
+    elif os.path.exists('../.env'):
+        load_dotenv('../.env')
+    elif os.path.exists('sim_guide/.env'):
+        load_dotenv('sim_guide/.env')
+except ImportError:
+    # dotenv not available, environment should be set by Cloud Run
+    pass
 
 # Use the same environment variables as the rest of the system
 PROJECT_ID = os.getenv("GOOGLE_CLOUD_PROJECT")

@@ -28,7 +28,7 @@ async def test_web_search_agent_integration():
 
     try:
         # Check agent configuration
-        assert web_search_agent.name == "web_search_specialist"
+        assert web_search_agent.name == "web_search_agent"
         assert web_search_agent.model == "gemini-2.0-flash"
         assert len(web_search_agent.tools) == 1
 
@@ -65,7 +65,7 @@ async def test_main_agent_integration():
             tool.agent.name for tool in root_agent.tools if hasattr(tool, "agent")
         ]
 
-        if "web_search_specialist" in agent_tools:
+        if "web_search_agent" in agent_tools:
             print("✅ Web search agent properly integrated with main agent")
             print(f"Available agent tools: {agent_tools}")
             return True
@@ -148,7 +148,7 @@ async def run_all_web_search_tests():
     if passed == total:
         print("✅ Web search agent is properly configured and integrated!")
         print("\n🔧 Usage Notes:")
-        print("- Use web_search_specialist for current information")
+        print("- Use web_search_agent for current information")
         print("- Automatically available through main agent delegation")
         print("- Follows ADK best practices for built-in tools")
         return 0

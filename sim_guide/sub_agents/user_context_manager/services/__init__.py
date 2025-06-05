@@ -6,7 +6,6 @@ session management, RAG memory, and other user context related logic.
 """
 
 from .user_service import (
-    UserPreferenceDetector,
     get_user_preferences,
     update_user_preferences,
     analyze_user_message_for_preferences,

@@ -39,6 +39,7 @@ venv.bak/
 # Docker files
 .dockerignore
 Dockerfile
+sim_guide/.env
 
 # Other
 .DS_Store

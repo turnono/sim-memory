@@ -32,10 +32,10 @@ root_agent = Agent(
     # Use sub_agents for business_strategist to allow delegation/transfer
     sub_agents=[
         business_strategist,
+        user_context_manager
     ],
     tools=[
         # Keep these as tools since they're utility/support agents
-        AgentTool(agent=user_context_manager),
         AgentTool(agent=capability_enhancement_agent),
         AgentTool(agent=web_search_agent),
     ]

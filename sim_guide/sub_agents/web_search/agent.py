@@ -24,7 +24,7 @@ logger = logging.getLogger(__name__)
 
 # Create the Web Search Agent
 web_search_agent = Agent(
-    name="web_search_specialist",
+    name="web_search_agent",
     model="gemini-2.0-flash",  # Required for built-in tools
     description=DESCRIPTION,
     instruction=INSTRUCTION,
