@@ -1,0 +1,131 @@
+---
+description:
+globs:
+alwaysApply: false
+---
+# Development & Testing
+
+## Development Setup
+1. Activate `.venv` virtual environment
+2. Verify Google Cloud credentials
+3. Check [.env](mdc:.env) has: `PROJECT_ID`, `LOCATION`, `REASONING_ENGINE_ID`
+4. Run `python test_refactored_system.py` to verify setup
+
+## Key Test Files
+- **System Tests**: [test_refactored_system.py](mdc:test_refactored_system.py)
+- **Memory Tests**: [evals/rag_memory_evals.py](mdc:evals/rag_memory_evals.py) 
+- **Health Check**: [evals/infrastructure_verification.py](mdc:evals/infrastructure_verification.py)
+
+## Adding New Components
+
+### New Sub-Agent
+```bash
+# 1. Create structure
+mkdir -p sim_guide/sub_agents/new_agent/{tools,services}
+touch sim_guide/sub_agents/new_agent/{__init__.py,agent.py,prompt.py}
+
+# 2. Implement agent.py with ADK patterns
+# 3. Create prompt.py with DESCRIPTION and INSTRUCTION  
+# 4. Register with root agent in sim_guide/agent.py
+```
+
+### New Tool
+```python
+@tool
+def your_tool(param: str, tool_context: ToolContext) -> str:
+    """Clear description"""
+    try:
+        if not param or not param.strip():
+            return "Invalid input"
+        return process_result(param.strip())
+    except Exception as e:
+        return f"Error: {str(e)}"
+```
+
+## Testing Patterns
+
+### Function Signature Testing
+```python
+# Memory storage - EXACT parameters
+response = await add_memory_from_conversation(
+    user_id=user_id,
+    session_id=session_id,
+    conversation_text=text,
+    memory_type=memory_type
+)
+
+# Memory retrieval - Returns List[str]
+memories: List[str] = await retrieve_user_memories(user_id, query)
+```
+
+### Evaluation Import Fix
+```python
+# ✅ CORRECT - Use available functions
+from sim_guide.sub_agents.user_context_manager.services.rag_memory_service import (
+    create_rag_corpus,
+    add_memory_from_conversation,
+    retrieve_user_memories,
+    search_all_corpora,
+    health_check
+)
+
+# ❌ WRONG - These don't exist
+# create_corpus, list_corpora, delete_corpus
+```
+
+### Test Data Patterns
+```python
+# Use UUID for unique test IDs
+test_id = f"test_{uuid.uuid4().hex[:8]}"
+user_id = f"test_user_{uuid.uuid4().hex[:8]}"
+
+# Wait for indexing after memory storage
+await add_memory_from_conversation(...)
+await asyncio.sleep(3)  # Allow indexing
+memories = await retrieve_user_memories(...)
+```
+
+## Error Testing
+```python
+def test_error_handling():
+    # Test None/empty inputs
+    assert tool_function(None) is not None
+    assert tool_function("") is not None
+    assert tool_function("   ") is not None
+```
+
+## Pre-commit Checklist
+- [ ] Run `python test_refactored_system.py`
+- [ ] Run `python evals/rag_memory_evals.py`
+- [ ] Check imports: `python -c "from sim_guide.agent import root_agent"`
+- [ ] Verify null-checks before string methods
+- [ ] No banned memory excuse phrases in prompts
+
+## Common Import Fixes
+```python
+# OLD broken imports
+from sim_guide.services import UserPreferences
+
+# NEW correct imports  
+from sim_guide.sub_agents.user_context_manager.services import UserPreferences
+```
+
+## Performance Testing
+```python
+import time
+start = time.time()
+result = await agent_function("test")
+duration = time.time() - start
+assert duration < 10.0  # 10 second threshold
+```
+
+## Mock Objects
+```python
+class MockToolContext:
+    def __init__(self, user_id="test_user"):
+        self.user_id = user_id
+        self.session = type('obj', (object,), {
+            'user_id': user_id,
+            'session_id': 'test_session'
+        })
+```

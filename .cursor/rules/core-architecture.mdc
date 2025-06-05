@@ -1,0 +1,69 @@
+---
+description:
+globs:
+alwaysApply: false
+---
+# Core Architecture
+
+## System Structure
+- **Root Agent**: [sim_guide/agent.py](mdc:sim_guide/agent.py) - Pure coordinator, no tools
+- **Sub-Agents**: [sim_guide/sub_agents/](mdc:sim_guide/sub_agents/) - Domain specialists with tools
+- **Memory System**: [user_context_manager/services/rag_memory_service.py](mdc:sim_guide/sub_agents/user_context_manager/services/rag_memory_service.py)
+- **Main Prompt**: [sim_guide/prompts.py](mdc:sim_guide/prompts.py) - Contains CRITICAL MEMORY RULES
+
+## Google ADK Requirements
+**CRITICAL**: All agent outputs must use STRING keys:
+```python
+# ✅ CORRECT
+return {"output": "response text"}
+
+# ❌ WRONG - Breaks Google ADK  
+return ResponseModel(output="text")
+```
+
+## Sub-Agent Pattern
+```
+sim_guide/sub_agents/[agent_name]/
+├── agent.py        # Agent implementation
+├── prompt.py       # DESCRIPTION and INSTRUCTION  
+├── tools/          # Agent-specific tools
+└── services/       # Business logic
+```
+
+## Memory System Functions
+```python
+# Storage - EXACT parameter order
+await add_memory_from_conversation(
+    user_id=user_id,
+    session_id=session_id, 
+    conversation_text=text,
+    memory_type=memory_type
+)
+
+# Retrieval - Returns List[str]
+memories: List[str] = await retrieve_user_memories(user_id, query)
+```
+
+## Environment Variables
+**BOTH sets required** to avoid degraded mode:
+```bash
+# For RAG Memory Service
+GOOGLE_CLOUD_PROJECT=project-id
+GOOGLE_CLOUD_LOCATION=us-central1
+
+# For Session Service
+PROJECT_ID=project-id
+LOCATION=us-central1
+```
+
+## Agent Behavior Rules
+**Agent MUST**:
+- Use memory tools when users reference previous information
+- Say "Let me search our conversations..." NOT "memory system under development"
+- Make multiple memory searches with different queries
+- Wait 3 seconds after storage before retrieval (indexing delay)
+
+## Key Services
+- **UserPreferences**: [user_context_manager/services/user_service.py](mdc:sim_guide/sub_agents/user_context_manager/services/user_service.py)
+- **RAG Memory**: [user_context_manager/services/rag_memory_service.py](mdc:sim_guide/sub_agents/user_context_manager/services/rag_memory_service.py)
+- **Sessions**: [user_context_manager/services/session_service.py](mdc:sim_guide/sub_agents/user_context_manager/services/session_service.py)
