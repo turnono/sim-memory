@@ -23,7 +23,7 @@ project_root = Path(__file__).parent.parent
 sys.path.insert(0, str(project_root))
 
 # Import from the new refactored structure
-from sim_guide.sub_agents.user_context_manager.services import (
+from sim_guide.sub_agents.memory_manager.services import (
     UserPreferences,
     LifeExperienceLevel,
     CommunicationStyle,
@@ -35,12 +35,12 @@ from sim_guide.sub_agents.user_context_manager.services import (
     get_personalized_instruction_context,
 )
 
-from sim_guide.sub_agents.user_context_manager.services.user_service import (
+from sim_guide.sub_agents.memory_manager.services.user_service import (
     UserPreferenceDetector,
 )
 
 # Import tools
-from sim_guide.sub_agents.user_context_manager.tools.preferences import (
+from sim_guide.sub_agents.memory_manager.tools.preferences import (
     get_user_preferences,
     set_user_preference,
     analyze_message_for_preferences,

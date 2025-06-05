@@ -1,9 +1,8 @@
 """
-User Context Management Subagent
+Memory Management Subagent
 
-A specialized agent focused exclusively on user context management including:
-memory operations, session management, user preferences, RAG integration,
-and long-term context management for the life guidance system.
+A specialized agent focused on memory management including:
+memory operations and session management for the life guidance system.
 
 This agent handles:
 - Loading and searching memories with ADK-aligned hybrid routing
@@ -13,8 +12,8 @@ This agent handles:
 - Cross-session memory continuity
 - Session context analysis and management
 - Conversation continuity tracking
-- User preferences and personalization
-- User profile management
+
+User preferences are now handled naturally by the LLM and RAG memory system.
 """
 
 import logging
@@ -33,11 +32,6 @@ from .tools import (
     analyze_session_context,
     get_conversation_continuity_hints,
     update_session_context,
-    # Preference tools
-    get_user_preferences,
-    set_user_preference,
-    analyze_message_for_preferences,
-    get_personalization_context,
 )
 
 logger = logging.getLogger(__name__)
@@ -45,37 +39,29 @@ logger = logging.getLogger(__name__)
 
 # === MEMORY AGENT CONFIGURATION ===
 
-# Memory management tools using the moved memory tools
+# Memory management tools
 memory_tools = [
     FunctionTool(func=load_life_guidance_memory),
     FunctionTool(func=preload_life_context),
     FunctionTool(func=load_life_resources),
 ]
 
-# Session management tools using the moved session tools
+# Session management tools
 session_tools = [
     FunctionTool(func=analyze_session_context),
     FunctionTool(func=get_conversation_continuity_hints),
     FunctionTool(func=update_session_context),
 ]
 
-# User preference tools (now moved from root)
-preference_tools = [
-    FunctionTool(func=get_user_preferences),
-    FunctionTool(func=set_user_preference),
-    FunctionTool(func=analyze_message_for_preferences),
-    FunctionTool(func=get_personalization_context),
-]
-
-# Combine all user context management tools
-all_user_context_tools = memory_tools + session_tools + preference_tools
+# Combine all memory management tools
+all_memory_tools = memory_tools + session_tools
 
 # Memory Management Agent
-user_context_manager = Agent(
-    name="user_context_manager",
+memory_manager = Agent(
+    name="memory_manager",
     model="gemini-2.0-flash",
     description=DESCRIPTION,
     instruction=INSTRUCTION,
     output_key="memory_search_result",  # String key for memory operations
-    tools=all_user_context_tools,
+    tools=all_memory_tools,
 )

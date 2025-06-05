@@ -29,7 +29,7 @@ from sim_guide.callbacks import (
     before_tool_callback,
     after_tool_callback,
 )
-from sim_guide.sub_agents.user_context_manager.services.rag_memory_service import (
+from sim_guide.sub_agents.memory_manager.services.rag_memory_service import (
     health_check,
     add_memory_from_conversation,
     retrieve_user_memories,
@@ -316,7 +316,7 @@ async def test_rag_memory_integration():
 
         # Create mock memory tool interaction
         tool = MockTool("memory_search_tool")  # Tool name contains 'memory'
-        args = {"query": "test memory query", "user_context": "test context"}
+        args = {"query": "test memory query", "memory": "test context"}
         context = MockToolContext("rag_test_user", "rag_test_session")
         response = "Found relevant memories: This is a test response that is longer than 50 characters to trigger storage."
 

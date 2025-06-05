@@ -295,7 +295,7 @@ async def add_memory_from_conversation(
         user_id: User identifier
         session_id: Session identifier
         conversation_text: Text content to store as memory
-        memory_type: Type of memory (general, preference, goal, etc.)
+        memory_type: Type of memory (general, goal, etc.)
 
     Returns:
         Dict with operation result

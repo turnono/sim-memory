@@ -17,14 +17,14 @@ logger = logging.getLogger(__name__)
 
 
 async def analyze_capability_gaps(
-    user_query: str, user_context: str, current_capabilities: str
+    user_query: str, memory: str, current_capabilities: str
 ) -> str:
     """
     Analyze gaps in the system's current capabilities based on user query and context.
 
     Args:
         user_query: The user's current question or request
-        user_context: Background information about the user
+        memory: Background information about the user
         current_capabilities: Description of what the system can currently do
 
     Returns:
@@ -35,7 +35,7 @@ async def analyze_capability_gaps(
 CAPABILITY GAP ANALYSIS
 
 User Request: {user_query}
-Context: {user_context}
+Context: {memory}
 
 🔍 IDENTIFIED GAPS:
 
@@ -50,7 +50,7 @@ Context: {user_context}
    - Recommendation: Evaluate additional MCP tools for this use case
 
 3. Personalization Gap
-   - Response could be more tailored to user's specific style/preferences
+           - Response could be more tailored to user's specific style/context
    - Generic responses may not match user's decision-making patterns
    - Recommendation: Consider user clone agent for this domain
 
@@ -95,7 +95,7 @@ async def suggest_new_subagents(
     Suggest new specialized sub-agents based on user profile and needs.
 
     Args:
-        user_profile: Description of the user's background, goals, and preferences
+        user_profile: Description of the user's background and goals
         recurring_needs: Types of guidance the user frequently requests
         expertise_gaps: Areas where current agents lack sufficient knowledge
 
@@ -103,7 +103,7 @@ async def suggest_new_subagents(
         Detailed suggestions for new sub-agents with implementation roadmap
     """
     try:
-        suggestions = f"""
+        suggestions = """
 SPECIALIZED SUB-AGENT RECOMMENDATIONS
 
 Based on your profile and recurring needs, here are targeted sub-agent suggestions:
@@ -128,7 +128,7 @@ Implementation Priority: HIGH (addresses 70% of recurring decision needs)
 
 2. Health & Wellness Optimization Agent
    - Personalized health guidance based on your lifestyle
-   - Exercise and nutrition planning with your preferences
+           - Exercise and nutrition planning with your context
    - Stress management and energy optimization
    - Long-term wellness strategy development
    Priority: MEDIUM
@@ -192,7 +192,7 @@ async def recommend_mcp_tools(user_challenges: str, workflow_analysis: str) -> s
         Targeted MCP tool recommendations with integration benefits
     """
     try:
-        recommendations = f"""
+        recommendations = """
 MCP TOOL INTEGRATION RECOMMENDATIONS
 
 Based on your workflow challenges, here are high-impact MCP tool suggestions:
@@ -323,9 +323,9 @@ Base Personality: {user_personality}
 Core Personality Traits (Maintained):
 - Decision-making style: [Extracted from user personality]
 - Risk tolerance: [Mapped from personality description]
-- Communication preferences: [Derived from interaction patterns]
+        - Communication style: [Derived from interaction patterns]
 - Value system: [Identified core values and priorities]
-- Problem-solving approach: [Characteristic methods and preferences]
+        - Problem-solving approach: [Characteristic methods and patterns]
 
 Domain Expertise Addition:
 - Deep knowledge in {expertise_domain}
@@ -346,7 +346,7 @@ knowledge and experience in this field.
 
 Your core personality:
 - [Specific personality traits extracted from user description]
-- [Decision-making patterns and preferences]
+        - [Decision-making patterns and approaches]
 - [Communication style and tone]
 - [Risk tolerance and value alignment]
 
@@ -367,8 +367,8 @@ When providing guidance:
 
 Phase 1: Personality Mapping (Week 1)
 - Analyze user's conversation history for personality patterns
-- Extract decision-making criteria and preferences
-- Identify communication style and tone preferences
+        - Extract decision-making criteria and patterns
+        - Identify communication style and tone patterns
 - Map risk tolerance and value system
 
 Phase 2: Expertise Integration (Week 2)
@@ -425,7 +425,7 @@ async def prioritize_system_improvements(
         Prioritized list of system improvements with implementation roadmap
     """
     try:
-        roadmap = f"""
+        roadmap = """
 SYSTEM IMPROVEMENT ROADMAP
 
 Based on your goals and current challenges, here's a prioritized implementation plan:
@@ -461,7 +461,7 @@ Priority: Deep customization
 
 1. User Clone Agents
    - Design your first clone agent in highest-priority domain
-   - Train on your historical interactions and preferences
+           - Train on your historical interactions and patterns
    - Test and refine personality alignment
 
 2. Workflow Automation
@@ -496,14 +496,14 @@ IMPLEMENTATION STRATEGY:
 
 
 async def generate_capability_implementation_plan(
-    selected_improvements: str, user_preferences: str, timeline: str
+    selected_improvements: str, memory: str, timeline: str
 ) -> str:
     """
     Generate a detailed implementation plan for selected capability improvements.
 
     Args:
         selected_improvements: Which improvements the user wants to implement
-        user_preferences: User's preferences for implementation style and pace
+        memory: User's context for implementation style and pace
         timeline: Desired timeline for implementation
 
     Returns:
@@ -515,7 +515,7 @@ IMPLEMENTATION PLAN
 
 Selected Improvements: {selected_improvements}
 Timeline: {timeline}
-Implementation Style: {user_preferences}
+Implementation Style: {memory}
 
 📋 DETAILED STEPS:
 
@@ -548,7 +548,7 @@ Day 11-12: Integration Testing
 
 Day 13-14: User Experience Refinement
 - Optimize interaction flows and response times
-- Implement user preference adaptations
+        - Implement memory adaptations
 - Create intuitive interfaces for new capabilities
 
 ONGOING: MONITORING AND IMPROVEMENT

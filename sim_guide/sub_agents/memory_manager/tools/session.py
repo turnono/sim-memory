@@ -30,13 +30,6 @@ def analyze_session_context() -> str:
         else:
             context_info.append("User: Not identified")
 
-        # Check preference establishment
-        has_preferences = any(
-            key.startswith("user:preference_") for key in session_state.keys()
-        )
-        context_info.append(
-            f"Preferences established: {'Yes' if has_preferences else 'No'}"
-        )
 
         # Check conversation history indicators
         temp_keys = [key for key in session_state.keys() if key.startswith("temp:")]
@@ -87,26 +80,14 @@ def get_conversation_continuity_hints() -> str:
         session_keys = list(session_state.keys())
         if not session_keys or len(session_keys) < 3:
             hints.append(
-                "New conversation - consider introduction and preference gathering"
+                "New conversation - consider introduction and context gathering"
             )
 
-        # Check if user preferences are missing
+        # Check if user identification is missing
         has_name = session_state.get("user:name")
-        has_experience = session_state.get("user:preference_life_experience_level")
-        has_style = session_state.get("user:preference_communication_style")
-
         if not has_name:
             hints.append("Consider asking for user's name for personalization")
 
-        if not has_experience:
-            hints.append(
-                "Life experience level unknown - could help with response tailoring"
-            )
-
-        if not has_style:
-            hints.append(
-                "Communication style preference not set - observe user's preferred style"
-            )
 
         # Check for signs of ongoing topics
         recent_memory = session_state.get("temp:last_memory_query")

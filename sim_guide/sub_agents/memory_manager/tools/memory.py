@@ -6,7 +6,6 @@ to provide better context and continuity for life guidance conversations.
 """
 
 import logging
-from typing import Dict, Any, Optional
 from google.adk.tools import load_memory, preload_memory, load_artifacts
 
 logger = logging.getLogger(__name__)
@@ -14,7 +13,7 @@ logger = logging.getLogger(__name__)
 
 def load_life_guidance_memory(query: str = "") -> str:
     """
-    Load relevant memories and context for life guidance based on user preferences and conversation history.
+    Load relevant memories and context for life guidance based on conversation history.
 
     Args:
         query: Specific query to search for in memories. If empty, uses general life guidance context.

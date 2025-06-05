@@ -25,7 +25,7 @@ def test_memory_prompt_instructions():
         "System prompt should include memory-first approach"
     )
     assert (
-        "Always start conversations by checking for existing user context" in prompt
+        "Always start conversations by checking for existing memory" in prompt
     ), "Should instruct to check context first"
 
     # Check for automatic storage instructions
@@ -37,8 +37,8 @@ def test_memory_prompt_instructions():
 
     # Check for memory management examples
     assert "MEMORY MANAGEMENT EXAMPLES" in prompt, "Should include concrete examples"
-    assert "user_context_manager store name" in prompt, "Should show how to store names"
-    assert "user_context_manager search for user context" in prompt, (
+    assert "memory_manager store name" in prompt, "Should show how to store names"
+    assert "memory_manager search for memory" in prompt, (
         "Should show how to search context"
     )
 
@@ -55,19 +55,19 @@ def test_memory_prompt_instructions():
     print("✅ Memory prompt instructions test passed")
 
 
-def test_agent_has_user_context_manager():
-    """Test that the agent has the user_context_manager tool available"""
-    # Check AgentTools for user_context_manager
+def test_agent_has_memory_manager():
+    """Test that the agent has the memory_manager tool available"""
+    # Check AgentTools for memory_manager
     agent_tool_names = []
     for tool in root_agent.tools:
         if hasattr(tool, "agent") and hasattr(tool.agent, "name"):
             agent_tool_names.append(tool.agent.name)
 
-    assert "user_context_manager" in agent_tool_names, (
-        f"Agent should have user_context_manager tool. Available AgentTools: {agent_tool_names}"
+    assert "memory_manager" in agent_tool_names, (
+        f"Agent should have memory_manager tool. Available AgentTools: {agent_tool_names}"
     )
 
-    print("✅ Agent has user_context_manager tool")
+    print("✅ Agent has memory_manager tool")
 
 
 def test_memory_principles_in_prompt():
@@ -98,7 +98,7 @@ def test_conversation_start_instructions():
     assert "For **Every Conversation Start**:" in prompt, (
         "Should have conversation start section"
     )
-    assert "Check user_context_manager for existing context" in prompt, (
+    assert "Check memory_manager for existing context" in prompt, (
         "Should instruct to check context"
     )
     assert "acknowledge it" in prompt, "Should instruct to acknowledge existing context"
@@ -112,14 +112,14 @@ def run_all_memory_tests():
     print("=" * 50)
 
     test_memory_prompt_instructions()
-    test_agent_has_user_context_manager()
+    test_agent_has_memory_manager()
     test_memory_principles_in_prompt()
     test_conversation_start_instructions()
 
     print("=" * 50)
     print("✅ All memory behavior evaluations passed!")
     print("The agent should now:")
-    print("  - Check for existing user context at every conversation start")
+    print("  - Check for existing memory at every conversation start")
     print("  - Store user information immediately when shared")
     print("  - Never make excuses about memory being 'under development'")
     print("  - Acknowledge continuity across sessions")

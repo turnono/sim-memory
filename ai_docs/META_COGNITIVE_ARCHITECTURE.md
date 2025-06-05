@@ -37,7 +37,7 @@ User Interaction → Gap Analysis → Capability Suggestions → Implementation 
 **Key Functions**:
 
 ```python
-analyze_capability_gaps(user_query, user_context, current_capabilities)
+analyze_capability_gaps(user_query, memory, current_capabilities)
 suggest_new_subagents(user_profile, recurring_needs, expertise_gaps)
 recommend_mcp_tools(user_challenges, workflow_analysis)
 design_user_clone_agent(user_personality, specialized_role, expertise_domain)
@@ -144,7 +144,7 @@ Creates specialized versions of the user with expert knowledge:
 ### **Phase 1: Gap Identification**
 
 1. Agent recognizes limitation during user interaction
-2. Analyzes user context and recurring needs
+2. Analyzes memory and recurring needs
 3. Identifies specific capability gaps
 4. Prioritizes improvements by impact
 
@@ -199,7 +199,7 @@ Creates specialized versions of the user with expert knowledge:
 ```python
 # Main agent includes capability enhancement
 tools=[
-    AgentTool(agent=user_context_manager),
+    AgentTool(agent=memory_manager),
     AgentTool(agent=capability_enhancement_agent),
 ]
 ```
@@ -213,7 +213,7 @@ user_message = "I need help with investment decisions"
 # Agent recognizes gap
 gap_analysis = capability_enhancement_agent.analyze_capability_gaps(
     user_query=user_message,
-    user_context=user_context,
+    memory=memory,
     current_capabilities="general life guidance"
 )
 

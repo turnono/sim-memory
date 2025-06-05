@@ -26,7 +26,7 @@ We've successfully implemented a **memory management subagent** that separates m
 
 ## Implementation Details
 
-### Memory Subagent (`sim_guide/agents/user_context_manager.py`)
+### Memory Subagent (`sim_guide/agents/memory_manager.py`)
 
 The memory subagent provides these specialized functions:
 
@@ -44,7 +44,7 @@ The memory subagent provides these specialized functions:
 - Dedicated to memory and RAG operations only
 - Uses cost-optimized memory services when flags are enabled
 - Provides clear status and error handling
-- Maintains user context and personalization
+- Maintains memory and personalization
 
 ### Main Agent Integration (`sim_guide/agent.py`)
 
@@ -52,10 +52,10 @@ The main agent now uses the memory subagent via AgentTool:
 
 ```python
 from google.adk.tools.agent_tool import AgentTool
-from .sub_agents.user_context_manager import user_context_manager
+from .sub_agents.memory_manager import memory_manager
 
 # Create AgentTool from memory agent
-memory_tool = AgentTool(agent=user_context_manager)
+memory_tool = AgentTool(agent=memory_manager)
 ```
 
 **Benefits:**
@@ -70,7 +70,7 @@ memory_tool = AgentTool(agent=user_context_manager)
 sim_guide/
 ├── agents/                    # New agents directory
 │   ├── __init__.py           # Agents module initialization
-│   └── user_context_manager.py       # Memory management subagent
+│   └── memory_manager.py       # Memory management subagent
 ├── agent.py                  # Main agent (updated)
 ├── tools/                    # Function-based tools only
 │   ├── __init__.py          # Updated (memory tools removed)
@@ -86,10 +86,10 @@ sim_guide/
 ### Direct Memory Subagent Access
 
 ```python
-from sim_guide.sub_agents.user_context_manager import user_context_manager
+from sim_guide.sub_agents.memory_manager import memory_manager
 
 # Direct interaction with memory subagent
-result = await user_context_manager.invoke("search my memories for career advice")
+result = await memory_manager.invoke("search my memories for career advice")
 ```
 
 ### Main Agent Delegation

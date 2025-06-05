@@ -15,7 +15,6 @@ import logging
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from sim_guide.sub_agents.capability_enhancement.agent import (
-    capability_enhancement_agent,
     analyze_capability_gaps,
     suggest_new_subagents,
     recommend_mcp_tools,
@@ -36,11 +35,11 @@ async def test_capability_gap_analysis():
 
     try:
         user_query = "I'm struggling to balance my startup work, personal relationships, and learning new skills. I feel overwhelmed and need a system to manage it all."
-        user_context = "Software engineer, 28 years old, working on a side startup while maintaining a full-time job. Recently moved to a new city and trying to build social connections."
+        memory = "Software engineer, 28 years old, working on a side startup while maintaining a full-time job. Recently moved to a new city and trying to build social connections."
         current_capabilities = "Basic life guidance, memory management, general advice"
 
         result = await analyze_capability_gaps(
-            user_query, user_context, current_capabilities
+            user_query, memory, current_capabilities
         )
 
         # Basic validation

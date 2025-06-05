@@ -1,8 +1,8 @@
 """
 Tool execution callbacks for the Sim Guide Agent
 
-Monitors tool executions and integrates with RAG Memory Service
-and User Preference System for enhanced user experience.
+Monitors tool executions and integrates with RAG Memory Service 
+for enhanced user experience.
 """
 
 import time
@@ -47,9 +47,6 @@ def before_tool_callback(
             f"🔧 Starting tool execution: {tool_name} (call_id: {function_call_id})"
         )
         logger.debug(f"Tool arguments: {args}")
-
-        # Auto-analyze user messages for preferences if available
-        _analyze_message_for_preferences(args or {}, tool_context)
 
         # Track tool usage patterns
         _track_tool_usage(tool_name, tool_context)
@@ -182,17 +179,6 @@ def after_tool_callback(
         if _is_memory_related_tool(tool_name):
             _handle_memory_tool_response(tool_name, args or {}, response, tool_context)
 
-        # Handle preference-related tool responses
-        if _is_preference_related_tool(tool_name):
-            _handle_preference_tool_response(
-                tool_name, args or {}, response, tool_context
-            )
-
-        # Update user preferences based on tool usage patterns
-        _update_preferences_from_tool_usage(
-            tool_name, args or {}, response, tool_context
-        )
-
         logger.debug(
             f"Tool response type: {type(response).__name__ if response else 'None'}"
         )
@@ -206,42 +192,9 @@ def after_tool_callback(
         return None
 
 
-def _analyze_message_for_preferences(
-    args: Dict[str, Any], context: ToolContext
-) -> None:
-    """
-    Analyze tool arguments for user messages that might contain preference indicators.
-
-    Args:
-        args: Tool arguments
-        context: Tool execution context
-    """
-    try:
-        # Look for user message in common argument names
-        user_message = None
-
-        for key in ["message", "user_message", "text", "query", "prompt", "input"]:
-            if key in args and isinstance(args[key], str):
-                user_message = args[key]
-                break
-
-        if user_message and len(user_message) > 10:  # Only analyze substantial messages
-            from ..services import analyze_user_message_for_preferences
-
-            session_state = getattr(context, "state", {})
-            updated_prefs = analyze_user_message_for_preferences(
-                user_message, session_state
-            )
-
-            logger.debug(f"Analyzed message for preferences: {len(user_message)} chars")
-
-    except Exception as e:
-        logger.debug(f"Could not analyze message for preferences: {e}")
-
-
 def _track_tool_usage(tool_name: str, context: ToolContext) -> None:
     """
-    Track tool usage patterns for preference insights.
+    Track tool usage patterns for insights.
 
     Args:
         tool_name: Name of the tool being used
@@ -303,18 +256,6 @@ def _is_memory_related_tool(tool_name: str) -> bool:
     return any(memory_tool in tool_name.lower() for memory_tool in memory_tools)
 
 
-def _is_preference_related_tool(tool_name: str) -> bool:
-    """Check if a tool is preference-related"""
-    preference_tools = [
-        "get_user_preferences",
-        "set_user_preference",
-        "remove_user_preference",
-        "analyze_message_for_preferences",
-        "get_personalization_context",
-    ]
-    return tool_name in preference_tools
-
-
 def _handle_memory_tool_response(
     tool_name: str, args: Dict[str, Any], response: Any, context: ToolContext
 ) -> None:
@@ -330,12 +271,12 @@ def _handle_memory_tool_response(
     try:
         # Skip if context is invalid
         if not context or isinstance(context, str) or not hasattr(context, "__dict__"):
-            logger.debug(f"Skipping memory tool response handling - invalid context")
+            logger.debug("Skipping memory tool response handling - invalid context")
             return
 
         # Import RAG memory service for integration
         import asyncio
-        from ..services import rag_memory_service
+        from ..sub_agents.memory_manager.services import rag_memory_service
 
         user_id = getattr(context, "user_id", "unknown")
         session_id = getattr(context, "session_id", "unknown")
@@ -369,106 +310,3 @@ def _handle_memory_tool_response(
 
     except Exception as e:
         logger.debug(f"Could not integrate with RAG Memory Service: {e}")
-
-
-def _handle_preference_tool_response(
-    tool_name: str, args: Dict[str, Any], response: Any, context: ToolContext
-) -> None:
-    """
-    Handle responses from preference-related tools.
-
-    Args:
-        tool_name: Name of the preference tool
-        args: Tool arguments
-        response: Tool response
-        context: Tool execution context (may be None or invalid)
-    """
-    try:
-        # Skip if context is invalid
-        if not context or isinstance(context, str) or not hasattr(context, "__dict__"):
-            logger.debug(
-                f"Skipping preference tool response handling - invalid context"
-            )
-            return
-
-        # Detect preference changes from tool usage
-        if tool_name == "get_user_preferences":
-            logger.debug("User checked their preferences")
-
-        elif tool_name == "set_user_preference" and args:
-            preference_name = args.get("preference_name")
-            preference_value = args.get("preference_value")
-            logger.debug(
-                f"User updated preference: {preference_name} = {preference_value}"
-            )
-
-        elif tool_name == "analyze_message_for_preferences" and args:
-            message = args.get("message", "")
-            if len(message) > 10:  # Only track substantial messages
-                logger.debug(f"Analyzed message for preferences: {len(message)} chars")
-
-    except Exception as e:
-        logger.debug(f"Could not handle preference tool response: {e}")
-
-
-def _update_preferences_from_tool_usage(
-    tool_name: str, args: Dict[str, Any], response: Any, context: ToolContext
-) -> None:
-    """
-    Update user preferences based on tool usage patterns.
-
-    Args:
-        tool_name: Name of the tool used
-        args: Tool arguments
-        response: Tool response
-        context: Tool execution context (may be None or invalid)
-    """
-    try:
-        # Skip if context is invalid
-        if not context or isinstance(context, str) or not hasattr(context, "__dict__"):
-            logger.debug(f"Skipping preference updates - invalid context")
-            return
-
-        # Try to get session state for preference updates
-        session_state = (
-            getattr(context, "state", {}) if hasattr(context, "state") else {}
-        )
-        if not isinstance(session_state, dict):
-            logger.debug(f"Session state is not a dict: {type(session_state)}")
-            return
-
-        # Get current user preferences
-        from ..services import get_user_preferences
-
-        preferences = get_user_preferences(session_state)
-
-        # Detect life areas from tool usage
-        life_area_keywords = {
-            "career": ["career", "job", "work", "professional"],
-            "finance": ["finance", "money", "budget", "investment"],
-            "health": ["health", "fitness", "wellness", "exercise"],
-            "relationships": ["relationship", "family", "friends", "social"],
-            "personal_growth": ["growth", "learning", "development", "skills"],
-        }
-
-        for area_type, keywords in life_area_keywords.items():
-            if any(keyword in tool_name.lower() for keyword in keywords):
-                from ..services import LifeArea
-
-                try:
-                    area_enum = LifeArea(area_type)
-                    if area_enum not in preferences.focus_life_areas:
-                        preferences.focus_life_areas.append(area_enum)
-                        logger.debug(f"Added life area interest: {area_type}")
-
-                        # Update preferences in session
-                        from ..services import update_user_preferences
-
-                        update_user_preferences(preferences, session_state)
-
-                except (ValueError, AttributeError) as e:
-                    logger.debug(f"Could not add life area {area_type}: {e}")
-                break
-
-    except Exception as e:
-        logger.debug(f"Could not update preferences from tool usage: {e}")

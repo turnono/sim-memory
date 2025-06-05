@@ -20,7 +20,7 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 # Import RAG memory service functions
-from sim_guide.sub_agents.user_context_manager.services.rag_memory_service import (
+from sim_guide.sub_agents.memory_manager.services.rag_memory_service import (
     create_rag_corpus,
     add_memory_from_conversation,
     retrieve_user_memories,

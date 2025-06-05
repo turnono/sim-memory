@@ -10,7 +10,7 @@ from .callbacks.tool import before_tool_callback, after_tool_callback
 from .prompts import PROMPT
 
 # Import the sub_agents
-from .sub_agents import user_context_manager
+from .sub_agents import memory_manager
 from .sub_agents import capability_enhancement_agent
 from .sub_agents import web_search_agent
 from .sub_agents import business_strategist
@@ -32,7 +32,7 @@ root_agent = Agent(
     # Use sub_agents for business_strategist to allow delegation/transfer
     sub_agents=[
         business_strategist,
-        user_context_manager
+        memory_manager
     ],
     tools=[
         # Keep these as tools since they're utility/support agents
