@@ -1,11 +1,15 @@
 """
 Memory Manager Tools Module
 
-Contains tools for memory operations and session management.
+Contains tools for memory operations and session management following ADK patterns.
+All tools use tool_context for session state management and follow ADK conventions.
+
+Note: Memory search is handled by ADK's built-in load_memory tool.
 """
 
 from .memory import (
-    load_life_guidance_memory,
+    store_user_context,
+    get_user_context,
     preload_life_context,
     load_life_resources,
 )
@@ -17,8 +21,8 @@ from .session import (
 )
 
 __all__ = [
-    # Memory tools
-    "load_life_guidance_memory",
+    "store_user_context",
+    "get_user_context",
     "preload_life_context",
     "load_life_resources",
     # Session tools

@@ -44,14 +44,19 @@ test-session:
 	@echo "[Test] Testing session service health..."
 	python -c "from sim_guide.agent import root_agent; print('✅ Agent and session service configured correctly')"
 
-# Test the RAG memory service health
+# Test the new ADK-pattern memory service
+test-memory-adk:
+	@echo "[Test] Testing new ADK-pattern memory service..."
+	PROJECT_ID=${GOOGLE_CLOUD_PROJECT} LOCATION=${GOOGLE_CLOUD_LOCATION} python test_memory_system.py
+
+# Test the RAG memory service health (legacy)
 test-rag:
 	@echo "[Test] Testing RAG memory service health..."
-	PROJECT_ID=${GOOGLE_CLOUD_PROJECT} LOCATION=${GOOGLE_CLOUD_LOCATION} python -c "import asyncio; from sim_guide.sub_agents.memory_manager.services.rag_memory_service import health_check; result = asyncio.run(health_check()); print('✅ RAG Memory Service healthy' if result.get('status') in ['healthy', 'degraded'] else '❌ RAG Memory Service failed'); print(f'Status: {result.get(\"status\")}, Duration: {result.get(\"duration_seconds\", 0):.2f}s')"
+	PROJECT_ID=${GOOGLE_CLOUD_PROJECT} LOCATION=${GOOGLE_CLOUD_LOCATION} python -c "import asyncio; from sim_guide.sub_agents.memory_manager.services.rag_memory_service import health_check; result = asyncio.run(health_check()); print('✅ Memory Service healthy' if result.get('status') in ['healthy', 'degraded'] else '❌ Memory Service failed'); print(f'Status: {result.get(\"status\")}')"
 
 test-agent:
 	@echo "[Agent Test] Testing the agent configuration..."
-	python -c "from sim_guide.agent import root_agent, session_service, runner; print(f'✅ Agent {root_agent.name} configured with VertexAI session service')"
+	python -c "from sim_guide.agent import root_agent; print(f'✅ Agent {root_agent.name} configured with memory_manager sub-agent')"
 
 # Test meta-cognitive capabilities
 test-meta-cognitive:

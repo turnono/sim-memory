@@ -84,14 +84,20 @@ def _get_runner():
         session_service = (
             _get_vertex_session_service()
         )  # Ensure vertex AI is initialized
+        
+        # Import memory service
+        from .rag_memory_service import get_memory_service
+        memory_service = get_memory_service()
+        
         _runner = Runner(
             app_name=APP_NAME,
             agent=get_root_agent(),
             session_service=session_service,
+            memory_service=memory_service,  # Add memory service to runner
         )
         _current_agent_type = current_env_setting
         logger.info(
-            f"Runner initialized with agent type: {'eval' if current_env_setting else 'production'}"
+            f"Runner initialized with agent type: {'eval' if current_env_setting else 'production'} and memory service: {type(memory_service).__name__}"
         )
 
     return _runner

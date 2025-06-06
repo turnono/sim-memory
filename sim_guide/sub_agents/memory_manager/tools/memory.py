@@ -1,185 +1,173 @@
 """
-Enhanced Memory Tools for Life Guidance
+Memory Management Tools for Life Guidance
 
-Functions that leverage ADK memory capabilities and session state management
-to provide better context and continuity for life guidance conversations.
+Simple memory tools following ADK patterns using tool_context and session state.
 """
 
 import logging
-from google.adk.tools import load_memory, preload_memory, load_artifacts
+from google.adk.tools.tool_context import ToolContext
+from google.adk.tools import load_memory
 
 logger = logging.getLogger(__name__)
 
 
-def load_life_guidance_memory(query: str = "") -> str:
-    """
-    Load relevant memories and context for life guidance based on conversation history.
+def store_user_context(context_info: str, context_type: str, tool_context: ToolContext) -> dict:
+    """Store user context information in session state.
 
     Args:
-        query: Specific query to search for in memories. If empty, uses general life guidance context.
+        context_info: The context information to store
+        context_type: Type of context (personal, goal, preference, situation, etc.)
+        tool_context: Context for accessing and updating session state
 
     Returns:
-        str: Status message indicating what memories were loaded or attempted to load.
+        A confirmation message
     """
+    logger.info(f"Storing user context: {context_type}")
+
+    # Store in session state with appropriate key
+    context_key = f"user:{context_type}"
+    tool_context.state[context_key] = context_info
+
+    return {
+        "action": "store_user_context",
+        "context_type": context_type,
+        "message": f"Stored {context_type} context: {context_info[:100]}{'...' if len(context_info) > 100 else ''}",
+    }
+
+
+def get_user_context(context_type: str, tool_context: ToolContext) -> dict:
+    """Get stored user context information.
+
+    Args:
+        context_type: Type of context to retrieve (personal, goal, preference, situation, etc.)
+        tool_context: Context for accessing session state
+
+    Returns:
+        The stored context information
+    """
+    logger.info(f"Retrieving user context: {context_type}")
+
+    # Get from session state
+    context_key = f"user:{context_type}"
+    context_info = tool_context.state.get(context_key, "")
+
+    return {
+        "action": "get_user_context",
+        "context_type": context_type,
+        "context_info": context_info,
+        "found": bool(context_info),
+    }
+
+
+def preload_life_context(context_type: str, tool_context: ToolContext) -> dict:
+    """Preload relevant context for ongoing conversations.
+
+    Args:
+        context_type: Type of context to preload (general, career, relationships, health, finance, etc.)
+        tool_context: Context for accessing session state and memory
+
+    Returns:
+        Dictionary with preloaded context information
+    """
+    logger.info(f"Preloading life context: {context_type}")
+
     try:
-        # Build comprehensive memory query
-        memory_query_parts = []
-
-        # Base query from user input
-        if query:
-            memory_query_parts.append(query)
-
-        # If no specific query, use general life guidance context
-        if not memory_query_parts:
-            memory_query_parts.append("life guidance personal context")
-
-        final_query = " ".join(memory_query_parts)
-
-        # Use ADK memory loading
+        # Get any stored context for this type
+        stored_context = get_user_context(context_type, tool_context)
+        
+        # Also search memory for related conversations using ADK's load_memory
+        memory_query = f"{context_type} guidance conversations goals challenges"
         try:
-            memory_result = load_memory(final_query)
-            return f"Loaded relevant life guidance memories for: {final_query}"
-
-        except Exception as mem_error:
-            logger.debug(f"ADK load_memory failed: {mem_error}")
-            return f"Memory search attempted for: {final_query} (no results found)"
-
+            memory_results = load_memory(memory_query, tool_context)
+        except Exception as e:
+            logger.warning(f"Memory search failed: {e}")
+            memory_results = []
+        
+        # Store preloaded context marker
+        tool_context.state[f"temp:preloaded_{context_type}"] = True
+        
+        return {
+            "action": "preload_life_context",
+            "context_type": context_type,
+            "stored_context": stored_context.get("context_info", ""),
+            "memory_results": memory_results if memory_results else [],
+            "message": f"Preloaded {context_type} context - found {len(memory_results) if memory_results else 0} related memories"
+        }
     except Exception as e:
-        logger.error(f"Error loading life guidance memory: {e}")
-        return f"Error: Failed to load memory: {str(e)}"
-
-
-def preload_life_context(context_type: str = "general") -> str:
-    """
-    Preload relevant context and resources for ongoing life guidance conversation.
-
-    Args:
-        context_type: Type of context to preload (general, career, relationships, health, etc.)
-
-    Returns:
-        str: Status message indicating what context was preloaded.
-    """
-    try:
-        # Determine what context to preload
-        preload_contexts = []
-
-        if context_type == "general":
-            preload_contexts = [
-                "life guidance basics",
-                "goal setting strategies",
-                "personal development tips",
-            ]
-        elif context_type == "career":
-            preload_contexts = [
-                "career development guidance",
-                "professional growth strategies",
-                "workplace advice",
-            ]
-        elif context_type == "relationships":
-            preload_contexts = [
-                "relationship guidance",
-                "communication skills",
-                "social interaction tips",
-            ]
-        elif context_type == "health":
-            preload_contexts = [
-                "health and wellness guidance",
-                "lifestyle optimization",
-                "mental health support",
-            ]
-        else:
-            preload_contexts = [f"{context_type} life guidance"]
-
-        # Attempt to preload each context
-        preloaded = []
-        for context_query in preload_contexts:
-            try:
-                preload_memory(context_query)
-                preloaded.append(context_query)
-            except Exception as e:
-                logger.debug(f"Preload failed for {context_query}: {e}")
-
-        if preloaded:
-            return f"Preloaded life guidance context: {', '.join(preloaded)}"
-        else:
-            return "No additional context available for preloading"
-
-    except Exception as e:
-        logger.error(f"Error preloading life context: {e}")
-        return f"Error: Failed to preload context: {str(e)}"
-
-
-def load_life_resources(resource_type: str = "general") -> str:
-    """
-    Load relevant life guidance resources and artifacts for specific life areas or challenges.
-
-    Args:
-        resource_type: Type of resources to load (career, relationships, health, finance, etc.)
-
-    Returns:
-        str: Status message indicating what resources were loaded.
-    """
-    try:
-        # Map resource types to specific artifacts
-        resource_map = {
-            "career": ["resume templates", "interview guides", "career planning"],
-            "relationships": [
-                "communication guides",
-                "relationship advice",
-                "conflict resolution",
-            ],
-            "health": ["wellness plans", "fitness guides", "mental health resources"],
-            "finance": [
-                "budgeting templates",
-                "investment guides",
-                "financial planning",
-            ],
-            "personal_growth": [
-                "self-improvement guides",
-                "skill development",
-                "learning resources",
-            ],
-            "productivity": [
-                "time management",
-                "organization systems",
-                "productivity tools",
-            ],
-            "creativity": [
-                "creative exercises",
-                "inspiration guides",
-                "artistic development",
-            ],
-            "social": ["networking guides", "social skills", "communication tips"],
-            "spirituality": [
-                "mindfulness guides",
-                "purpose exploration",
-                "meaning frameworks",
-            ],
-            "lifestyle": ["habit formation", "routine design", "life balance"],
-            "general": ["life guidance", "goal setting", "personal development"],
+        logger.error(f"Error preloading context: {e}")
+        return {
+            "action": "preload_life_context",
+            "context_type": context_type,
+            "stored_context": "",
+            "memory_results": [],
+            "message": f"Context preloading unavailable: {str(e)}"
         }
 
-        # Get resources to load
-        resources_to_load = resource_map.get(
-            resource_type, ["life guidance", "goal setting"]
-        )
 
-        # Attempt to load artifacts
-        loaded_resources = []
-        for resource in resources_to_load[:5]:  # Limit to 5 resources max
-            try:
-                load_artifacts(resource)
-                loaded_resources.append(resource)
-            except Exception as e:
-                logger.debug(f"Failed to load artifact {resource}: {e}")
+def load_life_resources(resource_type: str, tool_context: ToolContext) -> dict:
+    """Load specific life guidance resources and artifacts.
 
-        if loaded_resources:
-            return f"Loaded life guidance resources: {', '.join(loaded_resources)}"
-        else:
-            return (
-                f"Attempted to load resources for: {', '.join(resources_to_load[:3])}"
-            )
+    Args:
+        resource_type: Type of resource to load (frameworks, templates, strategies, etc.)
+        tool_context: Context for accessing stored resources
 
-    except Exception as e:
-        logger.error(f"Error loading life resources: {e}")
-        return f"Error: Failed to load resources: {str(e)}"
+    Returns:
+        Dictionary with resource information
+    """
+    logger.info(f"Loading life resources: {resource_type}")
+
+    # Define available life guidance resources
+    resources = {
+        "goal_setting": [
+            "SMART goals framework (Specific, Measurable, Achievable, Relevant, Time-bound)",
+            "Goal decomposition strategy: Break large goals into smaller milestones",
+            "Progress tracking templates for accountability"
+        ],
+        "decision_making": [
+            "Pro/Con analysis framework with weighted criteria",
+            "Future self visualization technique",
+            "Decision reversal test: 'Will I regret not trying this?'"
+        ],
+        "stress_management": [
+            "4-7-8 breathing technique for immediate calm",
+            "Time blocking strategy for workload management", 
+            "Perspective reframing: 'What would I tell a friend in this situation?'"
+        ],
+        "career": [
+            "Skills gap analysis template",
+            "Professional network mapping strategy",
+            "Career pivot framework: transferable skills identification"
+        ],
+        "relationships": [
+            "Active listening checklist",
+            "Conflict resolution steps: pause, understand, respond",
+            "Boundary setting scripts and frameworks"
+        ],
+        "health": [
+            "Habit stacking technique for building routines",
+            "Energy management: track patterns of high/low energy",
+            "Minimum viable progress: small consistent actions"
+        ],
+        "finance": [
+            "50/30/20 budgeting framework (needs/wants/savings)",
+            "Emergency fund building strategy",
+            "Investment basics: diversification and risk tolerance"
+        ]
+    }
+
+    available_resources = resources.get(resource_type, [])
+    
+    # Store loaded resources marker
+    if available_resources:
+        current_loaded = tool_context.state.get("temp:loaded_resources", [])
+        if resource_type not in current_loaded:
+            current_loaded.append(resource_type)
+            tool_context.state["temp:loaded_resources"] = current_loaded
+
+    return {
+        "action": "load_life_resources",
+        "resource_type": resource_type,
+        "resources": available_resources,
+        "found": bool(available_resources),
+        "message": f"Loaded {len(available_resources)} {resource_type} resources"
+    }

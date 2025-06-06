@@ -175,9 +175,7 @@ def after_tool_callback(
             except (AttributeError, TypeError) as e:
                 logger.debug(f"Could not store tool metrics: {e}")
 
-        # Handle memory-related tool responses
-        if _is_memory_related_tool(tool_name):
-            _handle_memory_tool_response(tool_name, args or {}, response, tool_context)
+        # Memory handling is now done automatically by ADK
 
         logger.debug(
             f"Tool response type: {type(response).__name__ if response else 'None'}"
@@ -203,7 +201,7 @@ def _track_tool_usage(tool_name: str, context: ToolContext) -> None:
     try:
         # Skip if context is invalid
         if not context or isinstance(context, str) or not hasattr(context, "__dict__"):
-            logger.debug(f"Skipping tool usage tracking - invalid context")
+            logger.debug("Skipping tool usage tracking - invalid context")
             return
 
         if not hasattr(context, "state"):
@@ -240,73 +238,3 @@ def _track_tool_usage(tool_name: str, context: ToolContext) -> None:
         logger.debug(f"Could not track tool usage: {e}")
 
 
-def _is_memory_related_tool(tool_name: str) -> bool:
-    """Check if a tool is memory-related"""
-    memory_tools = [
-        "search_memories",
-        "add_memory",
-        "retrieve_memories",
-        "store_conversation",
-        "recall_context",
-        "save_session",
-        "load_life_guidance_memory",
-        "preload_life_context",
-        "load_life_resources",
-    ]
-    return any(memory_tool in tool_name.lower() for memory_tool in memory_tools)
-
-
-def _handle_memory_tool_response(
-    tool_name: str, args: Dict[str, Any], response: Any, context: ToolContext
-) -> None:
-    """
-    Handle responses from memory-related tools by integrating with RAG Memory Service.
-
-    Args:
-        tool_name: Name of the memory tool
-        args: Tool arguments
-        response: Tool response
-        context: Tool execution context (may be None or invalid)
-    """
-    try:
-        # Skip if context is invalid
-        if not context or isinstance(context, str) or not hasattr(context, "__dict__"):
-            logger.debug("Skipping memory tool response handling - invalid context")
-            return
-
-        # Import RAG memory service for integration
-        import asyncio
-        from ..sub_agents.memory_manager.services import rag_memory_service
-
-        user_id = getattr(context, "user_id", "unknown")
-        session_id = getattr(context, "session_id", "unknown")
-
-        # Store important interactions in RAG memory
-        if response and hasattr(response, "success") and response.success:
-            memory_content = f"Tool: {tool_name}, Args: {args}, Response: {getattr(response, 'result', 'N/A')}"
-
-            # Create async task to store memory (don't await to avoid blocking)
-            def store_memory():
-                try:
-                    loop = asyncio.new_event_loop()
-                    asyncio.set_event_loop(loop)
-                    loop.run_until_complete(
-                        rag_memory_service.add_memory_from_conversation(
-                            user_id=user_id,
-                            session_id=session_id,
-                            conversation_text=memory_content,
-                            memory_type=f"tool_response_{tool_name}",
-                        )
-                    )
-                    loop.close()
-                except Exception as e:
-                    logger.debug(f"Could not store tool memory: {e}")
-
-            import threading
-
-            threading.Thread(target=store_memory, daemon=True).start()
-
-        logger.debug(f"Handled memory tool response for: {tool_name}")
-
-    except Exception as e:
-        logger.debug(f"Could not integrate with RAG Memory Service: {e}")
