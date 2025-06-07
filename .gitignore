@@ -51,3 +51,4 @@ deployment/
 
 
 evals/callback_eval_report_*.json
+.ruff_cache/

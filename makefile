@@ -12,6 +12,13 @@ dev:
 frontend-do:
 	cd frontend && npm start
 
+# Local development with ADK server (using working in-code DatabaseSessionService)
+local-server:
+	@echo "[Local ADK Server] Starting ADK API server with in-code DatabaseSessionService..."
+	@echo "Using DatabaseSessionService configured in code with SQLite database"
+	@echo "Setting PYTHONPATH to $(PWD) to fix module import issues"
+	PYTHONPATH=$(PWD):$$PYTHONPATH adk api_server sim_guide
+
 # production build and deploy
 
 deploy-frontend:
@@ -29,10 +36,34 @@ deploy:
 	--project=${GOOGLE_CLOUD_PROJECT} \
 	--region=${GOOGLE_CLOUD_LOCATION} \
 	--service_name=${AGENT_SERVICE_NAME} \
-	--app_name=sim-guide \
+	--app_name=${APP_NAME} \
 	--session_db_url=agentengine://${REASONING_ENGINE_ID} \
 	--with_ui \
 	./sim_guide
+
+deploy-gcloud-cli:
+	gcloud run deploy ${AGENT_SERVICE_NAME} \
+	--source . \
+	--region ${GOOGLE_CLOUD_LOCATION} \
+	--allow-unauthenticated \
+	--port 8000 \
+	--service-account ${AGENT_SERVICE_ACCOUNT} \
+	--set-env-vars="GOOGLE_CLOUD_PROJECT=${GOOGLE_CLOUD_PROJECT},\
+GOOGLE_CLOUD_LOCATION=${GOOGLE_CLOUD_LOCATION},\
+GOOGLE_GENAI_USE_VERTEXAI=${GOOGLE_GENAI_USE_VERTEXAI},\
+ENV=${ENV}"
+
+
+# deploy-new:
+# 	gcloud run deploy sim-guide-agent-service \
+# 	--source . \
+# 	--region us-central1 \
+# 	--allow-unauthenticated \
+# 	--port 8000 \
+# 	--memory 2Gi \
+# 	--cpu 2 \
+# 	--timeout 300 \
+# 	--max-instances 10
 
 # Delete the agent service from Google Cloud Run
 delete:
@@ -259,6 +290,9 @@ help:
 	@echo ""
 	@echo "💻 Development:"
 	@echo "   make dev               - Start local development server"
+	@echo "   make local-server      - Start ADK API server with DatabaseSessionService (WORKING)"
+	@echo "   make local-cli-database-server - Start ADK API server with CLI DatabaseSessionService (BROKEN)"
+	@echo "   make local-memory-server   - Start ADK API server with InMemorySessionService"
 	@echo "   make firestore-emulator- Start Firestore emulator"
 	@echo ""
 	@echo "🌐 Live Service:"
