@@ -30,7 +30,10 @@ except ImportError:
 # Environment configuration
 PROJECT_ID = os.getenv("GOOGLE_CLOUD_PROJECT")
 LOCATION = os.getenv("GOOGLE_CLOUD_LOCATION")
-USE_VERTEX_AI_RAG = os.getenv("USE_VERTEX_AI_RAG", "true").lower() == "true"
+USE_VERTEX_AI_RAG = os.getenv("GOOGLE_GENAI_USE_VERTEXAI", "TRUE").lower() == "true"
+
+# log the value of USE_VERTEX_AI_RAG
+logger.info(f"USE_VERTEX_AI_RAG: {USE_VERTEX_AI_RAG}")
 
 # RAG Corpus configuration
 RAG_CORPUS_RESOURCE_NAME = os.getenv(

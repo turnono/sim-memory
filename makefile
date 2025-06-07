@@ -42,6 +42,12 @@ deploy:
 	./sim_guide
 
 deploy-gcloud-cli:
+	@echo "[Deploy with gcloud] Deploying agent with managed session service using gcloud run deploy..."
+	@if [ -z "${REASONING_ENGINE_ID}" ]; then \
+		echo "❌ Error: REASONING_ENGINE_ID environment variable is not set."; \
+		echo "Set it in your .env file or export it: export REASONING_ENGINE_ID=your-agent-engine-resource-id"; \
+		exit 1; \
+	fi
 	gcloud run deploy ${AGENT_SERVICE_NAME} \
 	--source . \
 	--region ${GOOGLE_CLOUD_LOCATION} \
@@ -51,19 +57,28 @@ deploy-gcloud-cli:
 	--set-env-vars="GOOGLE_CLOUD_PROJECT=${GOOGLE_CLOUD_PROJECT},\
 GOOGLE_CLOUD_LOCATION=${GOOGLE_CLOUD_LOCATION},\
 GOOGLE_GENAI_USE_VERTEXAI=${GOOGLE_GENAI_USE_VERTEXAI},\
+REASONING_ENGINE_ID=${REASONING_ENGINE_ID},\
 ENV=${ENV}"
 
 
-# deploy-new:
-# 	gcloud run deploy sim-guide-agent-service \
-# 	--source . \
-# 	--region us-central1 \
-# 	--allow-unauthenticated \
-# 	--port 8000 \
-# 	--memory 2Gi \
-# 	--cpu 2 \
-# 	--timeout 300 \
-# 	--max-instances 10
+# Alternative deployment using our working gcloud approach with managed sessions
+deploy-working:
+	@echo "[Deploy Working] Using working gcloud deployment with managed session service..."
+	@if [ -z "${REASONING_ENGINE_ID}" ]; then \
+		echo "❌ Error: REASONING_ENGINE_ID environment variable is not set."; \
+		echo "Set it in your .env file or export it: export REASONING_ENGINE_ID=your-agent-engine-resource-id"; \
+		exit 1; \
+	fi
+	gcloud run deploy sim-guide-agent-service \
+	--source . \
+	--region us-central1 \
+	--allow-unauthenticated \
+	--port 8000 \
+	--memory 2Gi \
+	--cpu 2 \
+	--timeout 300 \
+	--max-instances 10 \
+	--set-env-vars="REASONING_ENGINE_ID=${REASONING_ENGINE_ID}"
 
 # Delete the agent service from Google Cloud Run
 delete:
