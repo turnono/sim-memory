@@ -38,7 +38,7 @@ logger.info(f"USE_VERTEX_AI_RAG: {USE_VERTEX_AI_RAG}")
 # RAG Corpus configuration
 RAG_CORPUS_RESOURCE_NAME = os.getenv(
     "RAG_CORPUS_RESOURCE_NAME",
-    f"projects/{PROJECT_ID}/locations/{LOCATION}/ragCorpora/life-guidance-corpus"
+    f"projects/{PROJECT_ID}/locations/{LOCATION}/ragCorpora/6116451243922554880"
 )
 SIMILARITY_TOP_K = int(os.getenv("SIMILARITY_TOP_K", "5"))
 VECTOR_DISTANCE_THRESHOLD = float(os.getenv("VECTOR_DISTANCE_THRESHOLD", "0.7"))

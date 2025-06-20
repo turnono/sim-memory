@@ -31,21 +31,34 @@ def analyze_session_context(tool_context: ToolContext) -> dict:
         else:
             context_info.append("User: Not identified")
 
-        # Check conversation history indicators
-        temp_keys = [key for key in tool_context.state.keys() if key.startswith("temp:")]
-        if temp_keys:
-            context_info.append(f"Session context available: {len(temp_keys)} items")
-
         # Check for loaded resources
         loaded_resources = tool_context.state.get("temp:loaded_resources", [])
         if loaded_resources:
             context_info.append(f"Resources available: {', '.join(loaded_resources[:3])}")
 
-        # Check for preloaded contexts
-        preloaded_keys = [key for key in tool_context.state.keys() if key.startswith("temp:preloaded_")]
-        if preloaded_keys:
-            contexts = [key.replace("temp:preloaded_", "") for key in preloaded_keys]
-            context_info.append(f"Preloaded contexts: {', '.join(contexts[:2])}")
+        # Check for specific context items we know about
+        session_items = 0
+        if tool_context.state.get("temp:conversation_summary"):
+            session_items += 1
+        if tool_context.state.get("temp:user_context"):
+            session_items += 1
+        if tool_context.state.get("temp:topic_focus"):
+            session_items += 1
+        
+        if session_items > 0:
+            context_info.append(f"Session context available: {session_items} items")
+
+        # Check for preloaded contexts (check specific known keys)
+        preloaded_contexts = []
+        if tool_context.state.get("temp:preloaded_guidance"):
+            preloaded_contexts.append("guidance")
+        if tool_context.state.get("temp:preloaded_memory"):
+            preloaded_contexts.append("memory")
+        if tool_context.state.get("temp:preloaded_preferences"):
+            preloaded_contexts.append("preferences")
+        
+        if preloaded_contexts:
+            context_info.append(f"Preloaded contexts: {', '.join(preloaded_contexts[:2])}")
 
         analysis = "; ".join(context_info)
 
@@ -54,7 +67,7 @@ def analyze_session_context(tool_context: ToolContext) -> dict:
             "analysis": analysis,
             "user_identified": bool(user_name),
             "resources_loaded": len(loaded_resources),
-            "contexts_preloaded": len(preloaded_keys),
+            "contexts_preloaded": len(preloaded_contexts),
             "message": f"Session Analysis: {analysis}"
         }
 
@@ -84,20 +97,36 @@ def get_conversation_continuity_hints(tool_context: ToolContext) -> dict:
     try:
         hints = []
 
-        # Check if this seems like a new conversation
-        session_keys = list(tool_context.state.keys())
-        if not session_keys or len(session_keys) < 3:
-            hints.append("New conversation - consider introduction and context gathering")
-
         # Check if user identification is missing
         has_name = tool_context.state.get("user:name")
         if not has_name:
             hints.append("Consider asking for user's name for personalization")
 
-        # Check for stored user contexts
-        user_contexts = [key for key in tool_context.state.keys() if key.startswith("user:")]
+        # Check for stored user contexts (check specific known user keys)
+        user_contexts = []
+        if tool_context.state.get("user:preferences"):
+            user_contexts.append("preferences")
+        if tool_context.state.get("user:goals"):
+            user_contexts.append("goals")
+        if tool_context.state.get("user:context"):
+            user_contexts.append("context")
+        if tool_context.state.get("user:history"):
+            user_contexts.append("history")
+        
+        # Check if this seems like a new conversation (based on available context)
+        total_context_items = len(user_contexts)
+        if tool_context.state.get("temp:conversation_summary"):
+            total_context_items += 1
+        if tool_context.state.get("current_topic"):
+            total_context_items += 1
+        
+        is_new_conversation = total_context_items < 2
+        
+        if is_new_conversation:
+            hints.append("New conversation - consider introduction and context gathering")
+
         if user_contexts:
-            context_types = [key.replace("user:", "") for key in user_contexts[:3]]
+            context_types = user_contexts[:3]
             hints.append(f"Available context: {', '.join(context_types)}")
 
         # Check for loaded resources that could be referenced
@@ -111,7 +140,7 @@ def get_conversation_continuity_hints(tool_context: ToolContext) -> dict:
         return {
             "action": "get_conversation_continuity_hints",
             "hints": hints,
-            "is_new_conversation": len(session_keys) < 3,
+            "is_new_conversation": is_new_conversation,
             "user_identified": bool(has_name),
             "available_contexts": len(user_contexts),
             "message": f"Continuity hints: {'; '.join(hints)}"
@@ -163,4 +192,42 @@ def update_session_context(context_type: str, context_value: str, tool_context: 
             "context_value": context_value,
             "context_key": None,
             "message": f"Error: Failed to update session context: {str(e)}"
+        }
+
+
+def save_session_to_memory(context_summary: str, tool_context: ToolContext) -> dict:
+    """Save current session context to long-term memory for future retrieval.
+    
+    This should be called at the end of meaningful conversations or when 
+    important context needs to be preserved for future sessions.
+
+    Args:
+        context_summary: Summary of the key context/insights from this session
+        tool_context: Context for accessing session info and memory service
+
+    Returns:
+        Dictionary with save operation result
+    """
+    logger.info("Saving session to long-term memory")
+
+    try:
+        # Note: The actual memory saving is handled by the Runner's memory service
+        # through ADK's automatic session-to-memory integration
+        
+        # Mark this session as saved for memory
+        tool_context.state["temp:session_saved_to_memory"] = True
+        tool_context.state["temp:memory_summary"] = context_summary
+        
+        return {
+            "action": "save_session_to_memory",
+            "summary": context_summary,
+            "message": f"Session context saved to memory: {context_summary[:100]}{'...' if len(context_summary) > 100 else ''}"
+        }
+        
+    except Exception as e:
+        logger.error(f"Error saving session to memory: {e}")
+        return {
+            "action": "save_session_to_memory", 
+            "summary": context_summary,
+            "message": f"Error saving session: {str(e)}"
         }

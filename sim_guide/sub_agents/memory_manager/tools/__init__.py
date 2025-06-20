@@ -18,6 +18,7 @@ from .session import (
     analyze_session_context,
     get_conversation_continuity_hints,
     update_session_context,
+    save_session_to_memory,
 )
 
 __all__ = [
@@ -29,4 +30,5 @@ __all__ = [
     "analyze_session_context",
     "get_conversation_continuity_hints",
     "update_session_context",
+    "save_session_to_memory",
 ]

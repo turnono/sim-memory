@@ -30,6 +30,7 @@ from .tools import (
     analyze_session_context,
     get_conversation_continuity_hints,
     update_session_context,
+    save_session_to_memory,
 )
 
 logger = logging.getLogger(__name__)
@@ -51,6 +52,7 @@ session_tools = [
     FunctionTool(func=analyze_session_context),
     FunctionTool(func=get_conversation_continuity_hints),
     FunctionTool(func=update_session_context),
+    FunctionTool(func=save_session_to_memory),
 ]
 
 # Combine all memory management tools

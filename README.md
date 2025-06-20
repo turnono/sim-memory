@@ -1,356 +1,78 @@
-# Simulation Guide Agent
+# Sim-Memory: A Meta-Cognitive Life Guidance Agent
 
-A sophisticated AI agent built with Google's Agent Development Kit (ADK) that provides intelligent guidance for simulation planning and optimization. The agent uses VertexAI's managed session service for persistent, context-aware conversations and includes long-term memory capabilities through Vertex AI RAG Engine.
+## Project Overview
 
-## 🏗️ Architecture
+`sim-memory` is a sophisticated, meta-cognitive AI assistant designed to provide personalized life guidance. Its core mission is to not only help users with their daily challenges and long-term goals but also to continuously evolve and improve its own capabilities to better serve the user over time. The "simulation" it guides the user through is life itself.
 
-- **Agent Framework**: Google ADK (Agent Development Kit)
-- **Session Management**: VertexAI Agent Engine (managed service)
-- **Long-term Memory**: Vertex AI RAG Engine for document storage and semantic search
-- **Model**: Gemini 2.0 Flash via VertexAI
-- **Deployment**: Google Cloud Run
-- **Session Persistence**: Conversations maintained within sessions, isolated across sessions
-- **Memory Persistence**: Cross-session memory via RAG corpora for user-specific context
+This project is built using the `google.adk` (Agent Development Kit) and leverages Google Cloud's Vertex AI for advanced memory capabilities.
 
-## 🧠 RAG Memory Service
+## Core Concepts
 
-The application now includes a comprehensive RAG (Retrieval-Augmented Generation) memory service that provides:
+- **Meta-Cognition & Self-Improvement**: The agent can analyze its own performance and limitations. It proactively suggests creating new tools, new specialized sub-agents, or even "clones" of the user with expert knowledge in specific domains to enhance its guidance.
+- **Hierarchical Agent Architecture**: The system is not a single AI. It's a team of specialized agents coordinated by a central `root_agent`. This allows for deep expertise in various domains like business strategy, memory management, and web search.
+- **Flawless Memory**: A core design principle is that the agent has a complete and reliable memory of past interactions. It is explicitly programmed **never** to make excuses about forgetting information. It uses a powerful **R**etrieval **A**ugmented **G**eneration (RAG) service powered by Vertex AI to search and retrieve context from past conversations.
+- **Personalized Partnership**: The agent positions the user as a co-creator. It works with the user to build their ideal, personalized AI system, making every interaction an opportunity for both guidance and system evolution.
 
-- **Corpus Management**: Create, manage, and delete RAG corpora
-- **Document Storage**: Upload simulation guides and reference materials
-- **Semantic Search**: Query documents using natural language
-- **User Memory**: Store and retrieve user-specific conversation history
-- **Integration**: Seamlessly works with the existing session service
+## Architecture
 
-### 🚀 RAG Setup
+The system is composed of a `root_agent` that orchestrates several specialized sub-agents and tools.
 
-**⚠️ Important**: The RAG Memory Service requires additional setup beyond the basic agent. See the comprehensive setup guide:
+### `root_agent` (`sim_guide`)
 
-**[📖 RAG Setup Guide](RAG_SETUP_GUIDE.md)**
+- **Location**: `sim_guide/agent.py`
+- **Function**: The central coordinator and the main point of interaction with the user. It analyzes the user's request and decides whether to handle it directly, use a utility tool, or delegate to a specialized sub-agent. Its behavior is governed by the detailed prompt in `sim_guide/prompts.py`.
 
-The setup guide covers:
+### Sub-Agents
 
-- Enabling Vertex AI APIs
-- Configuring service account permissions
-- Testing the RAG functionality
-- Troubleshooting common issues
+#### 1. `memory_manager`
 
-## 🚀 Quick Start
+- **Location**: `sim_guide/sub_agents/memory_manager/`
+- **Function**: The cornerstone of the agent's memory. It handles storing and retrieving user information, conversation history, and session context. It uses ADK's `load_memory` tool which is connected to a Vertex AI RAG service, allowing it to perform semantic searches over past conversations.
 
-### Prerequisites
+#### 2. `business_strategist`
 
-1. **Google Cloud Project** with billing enabled
-2. **Required APIs** enabled:
-   - Vertex AI API
-   - AI Platform API
-   - Cloud Run API
-   - Cloud Storage API (for RAG)
-3. **Authentication**: `gcloud auth login` and `gcloud auth application-default login`
+- **Location**: `sim_guide/sub_agents/business_strategist/`
+- **Function**: An MBA-level business expert. When the user has business-related questions, the `root_agent` delegates to this sub-agent. It has its own team of even more specialized agents for:
+  - Marketing
+  - Finance
+  - Operations
+  - Product
+  - Growth Strategy
 
-### Local Development
+#### 3. `capability_enhancement_agent`
 
-```bash
-# 1. Clone and setup
-git clone <repository>
-cd sim-memory
+- **Location**: `sim_guide/sub_agents/capability_enhancement/`
+- **Function**: The "meta-cognitive" brain of the system. This agent's job is to analyze the `root_agent`'s performance and identify opportunities for improvement. It can suggest creating new agents, integrating new tools (e.g., connecting to Google Calendar), or designing "user clones" (agents that think like the user but have expert knowledge).
 
-# 2. Create and activate virtual environment
-python -m venv .venv
-source .venv/bin/activate  # On Windows: .venv\Scripts\activate
+#### 4. `web_search_agent`
 
-# 3. Install dependencies
-pip install -r requirements.txt
+- **Location**: `sim_guide/sub_agents/web_search/`
+- **Function**: Provides access to real-time information from the internet using Google's built-in search tool. This ensures the agent's knowledge is current and not limited to its training data.
 
-# 4. Set environment variables (see .env.example)
-cp .env.example .env
-# Edit .env with your Google Cloud project details
+### Callbacks and Services
 
-# 5. Setup RAG Memory Service (optional but recommended)
-# Follow the RAG_SETUP_GUIDE.md for complete setup
+- **Callbacks** (`sim_guide/callbacks/`): The system uses callbacks to log and monitor events throughout the agent's lifecycle (e.g., before/after a model call, before/after a tool is used). This is useful for debugging and performance tracking.
+- **Services** (`sim_guide/sub_agents/memory_manager/services/`): These modules handle the configuration and initialization of core services, primarily the connection to the Vertex AI RAG memory and the ADK session management service.
 
-# 6. Start local development
-make dev
-```
+## Current Status
 
-### Testing the Agent
+- **Architecture & Code**: The project's architecture is well-defined and the code appears to be complete and robustly implemented according to the design. The logic is highly modular, separating concerns into different agents and services.
+- **Configuration**: The system is configurable via a `.env` file, allowing developers to switch between a full-featured production agent and a lightweight evaluation agent, and to configure the memory backend (Vertex AI RAG or a local in-memory version for testing).
+- **Potential Issues**:
+  - The project has a high degree of complexity due to its multi-agent nature. Understanding the interaction flow between agents is key.
+  - It has a strong dependency on the `google.adk` framework and Google Cloud Platform services. It is not a standalone application.
+- **Overall**: The project is at a stage where the core implementation is finished. The next logical steps would be thorough end-to-end testing, deployment to a suitable environment (like Google Cloud Run), and gathering real user feedback to start leveraging its self-improvement capabilities.
 
-```bash
-# Test agent configuration
-make test-agent
+## How to Run
 
-# Test RAG memory service (if configured)
-make test-rag
+1.  **Prerequisites**:
+    - Python environment.
+    - Google Cloud Project with Vertex AI API enabled.
+    - Service account credentials with permissions for Vertex AI.
+2.  **Setup**:
+    - Install dependencies: `pip install -r requirements.txt`.
+    - Create a `.env` file in the root directory and populate it with the necessary configuration from `.env.example` (if one exists) or the required variables (`GOOGLE_CLOUD_PROJECT`, `GOOGLE_CLOUD_LOCATION`, `RAG_CORPUS_RESOURCE_NAME`, etc.).
+3.  **Execution**:
+    - The entry point for running the agent seems to be through the `Runner` object defined in `sim_guide/sub_agents/memory_manager/services/session_service.py`. The `main.py` file likely contains the logic to start the application.
 
-# Run evaluation suite
-make eval-quick    # Quick health check
-make eval-all      # Complete evaluation suite
-make eval-rag      # RAG memory tests
-```
-
-## 📦 Deployment
-
-### Environment Variables Required
-
-Set these in your `.env` file:
-
-```bash
-GOOGLE_CLOUD_PROJECT=your-project-id
-GOOGLE_CLOUD_LOCATION=us-central1
-REASONING_ENGINE_ID=your-reasoning-engine-id
-AGENT_SERVICE_NAME=sim-guide-agent-service
-
-# For RAG Memory Service (optional)
-GOOGLE_APPLICATION_CREDENTIALS=./path-to-service-account.json
-```
-
-### Deploy with ADK CLI
-
-```bash
-# Standard deployment
-make deploy
-
-```
-
-### Delete Deployment
-
-```bash
-make delete
-```
-
-## 🌐 Usage
-
-Once deployed, your agent is available via:
-
-### 1. REST API
-
-**Base URL**: `https://your-service-url.run.app`
-
-**Key Endpoints**:
-
-- `POST /run` - Agent interactions
-- `GET /docs` - Interactive API documentation
-- `POST /apps/{app_name}/users/{user_id}/sessions` - Create sessions
-- `GET /apps/{app_name}/users/{user_id}/sessions` - List sessions
-
-**Example API Usage**:
-
-```bash
-# Create a session
-curl -X POST "https://your-service-url/apps/sim-guide/users/test-user/sessions" \
-     -H "Content-Type: application/json" -d '{}'
-
-# Send a message
-curl -X POST "https://your-service-url/run" \
-     -H "Content-Type: application/json" \
-     -d '{
-       "appName": "sim-guide",
-       "userId": "test-user",
-       "sessionId": "your-session-id",
-       "newMessage": {
-         "parts": [{"text": "Help me plan a simulation study"}],
-         "role": "user"
-       }
-     }'
-```
-
-### 2. Web UI (if deployed with --with_ui)
-
-**URL**: `https://your-service-url.run.app/dev-ui`
-
-- Visual chat interface
-- Session management
-- Easy testing and demos
-
-## 📊 Memory Architecture
-
-### Session Management (Short-term)
-
-- **Within Session**: Full conversation history maintained
-- **Across Sessions**: Complete isolation (by design)
-- **Storage**: VertexAI Agent Engine managed storage
-
-### RAG Memory (Long-term)
-
-- **User-specific Corpora**: Individual memory stores per user
-- **Document Storage**: Simulation guides, best practices, reference materials
-- **Semantic Retrieval**: Natural language queries to find relevant information
-- **Cross-session Continuity**: Remember user preferences and previous simulation contexts
-
-### Memory Lifecycle
-
-1. **Session Create**: New session with unique ID
-2. **RAG Initialize**: User corpus created if needed
-3. **Interact**: Messages saved to both session and RAG memory
-4. **Retrieve**: Relevant memories pulled from RAG when helpful
-5. **Persist**: Both session and long-term context maintained
-
-## 🧪 Testing and Evaluation
-
-### Health Checks
-
-```bash
-make eval-quick          # Basic health check
-make test-session        # Session service test
-make test-rag           # RAG memory service test
-```
-
-### Full Evaluation Suite
-
-```bash
-make eval-all           # Complete evaluation (includes RAG)
-make eval-session       # Session functionality tests
-make eval-rag           # RAG memory functionality tests
-make eval-agent         # Agent behavior tests
-make eval-performance   # Performance tests
-```
-
-### Manual Testing
-
-```bash
-# Test deployed service health
-curl https://your-service-url.run.app/docs
-
-# Test session creation
-curl -X POST "https://your-service-url.run.app/apps/sim-guide/users/test/sessions" \
-     -H "Content-Type: application/json" -d '{}'
-
-# Test RAG health (if configured)
-GOOGLE_CLOUD_PROJECT=your-project GOOGLE_CLOUD_LOCATION=us-central1 python -c "
-import asyncio;
-from sim_guide.sub_agents.memory_manager.services.rag_memory_service import health_check;
-print(asyncio.run(health_check()))
-"
-```
-
-## 🔧 Development
-
-### Project Structure
-
-```
-sim-memory/
-├── sim_guide/              # Agent implementation
-│   ├── agent.py            # Main agent configuration
-│   ├── session_service.py  # Session service setup
-│   └── sub_agents/memory_manager/services/rag_memory_service.py # RAG memory service
-├── evals/                  # Evaluation framework
-│   ├── session_evals.py    # Session service tests
-│   └── rag_memory_evals.py # RAG memory tests
-├── makefile               # Build and deployment commands
-├── requirements.txt       # Python dependencies
-├── Dockerfile            # Container configuration
-├── RAG_SETUP_GUIDE.md    # RAG setup instructions
-└── README.md             # This file
-```
-
-### Key Files
-
-- `sim_guide/agent.py` - Agent configuration with VertexAI session service
-- `sim_guide/sub_agents/memory_manager/services/rag_memory_service.py` - RAG memory operations and management
-- `evals/rag_memory_evals.py` - Comprehensive RAG testing suite
-- `RAG_SETUP_GUIDE.md` - Step-by-step RAG configuration guide
-- `makefile` - All deployment and testing commands
-- `.env` - Environment configuration (create from .env.example)
-
-### ADK Integration
-
-This project uses Google's Agent Development Kit (ADK) with:
-
-- VertexAI session management
-- Vertex AI RAG Engine for long-term memory
-- Gemini 2.0 Flash model
-- Cloud Run deployment
-
-### RAG Memory Integration
-
-The RAG memory service provides seamless integration with:
-
-- **Text Embedding**: Uses `text-embedding-004` model
-- **Vector Search**: Semantic similarity search across documents
-- **Document Management**: Upload simulation guides, store user conversations
-- **Context Augmentation**: Retrieve relevant information to enhance agent responses
-
-## 📋 Available Commands
-
-### Development
-
-- `make dev` - Start local development server
-- `make test-agent` - Test agent configuration
-- `make test-session` - Test session service
-- `make test-rag` - Test RAG memory service
-
-### Evaluation
-
-- `make eval-quick` - Quick health checks
-- `make eval-all` - Complete test suite
-- `make eval-session` - Session-specific tests
-- `make eval-rag` - RAG-specific tests
-- `make eval-performance` - Performance benchmarks
-
-### Deployment
-
-- `make deploy` - Deploy to Cloud Run
-- `make delete` - Delete deployment
-- `make logs` - View deployment logs
-
-## 🔗 Resources
-
-- [Google ADK Documentation](https://cloud.google.com/vertex-ai/generative-ai/docs/agent-development-kit)
-- [Vertex AI RAG Engine](https://cloud.google.com/vertex-ai/generative-ai/docs/rag-overview)
-- [RAG Setup Guide](RAG_SETUP_GUIDE.md) - **Start here for RAG functionality**
-- [Vertex AI Agent Engine](https://cloud.google.com/vertex-ai/generative-ai/docs/agents/overview)
-
-## 📝 Monitoring
-
-### View Logs
-
-```bash
-# Cloud Run logs
-gcloud logging read "resource.type=cloud_run_revision AND resource.labels.service_name=sim-guide-agent-service" --limit=10
-
-# Service status
-gcloud run services describe sim-guide-agent-service --region=us-central1
-```
-
-### Key Metrics
-
-- Token usage (prompt + response tokens)
-- Session creation/management
-- API response times
-- Error rates
-
-## 🔗 Related Documentation
-
-- [Vertex AI Setup Guide](VERTEX_AI_SETUP.md) - Initial VertexAI configuration
-- [API Documentation](https://your-service-url.run.app/docs) - Interactive API docs
-
-## 🆘 Troubleshooting
-
-### Common Issues
-
-1. **Authentication Errors**
-
-   ```bash
-   gcloud auth login
-   gcloud auth application-default login
-   ```
-
-2. **Missing Environment Variables**
-
-   - Check `.env` file configuration
-   - Verify Google Cloud project settings
-
-3. **Deployment Failures**
-
-   - Ensure required APIs are enabled
-   - Check service account permissions
-   - Verify `REASONING_ENGINE_ID` is correct
-
-4. **Session Service Issues**
-   ```bash
-   make test-session  # Test session connectivity
-   make eval-quick    # Quick health check
-   ```
-
-## 📄 License
-
-This project is licensed under the Apache License 2.0.
+This documentation should provide a comprehensive overview to understand the project's purpose, architecture, and current state.

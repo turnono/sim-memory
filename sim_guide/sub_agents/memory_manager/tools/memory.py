@@ -75,13 +75,10 @@ def preload_life_context(context_type: str, tool_context: ToolContext) -> dict:
         # Get any stored context for this type
         stored_context = get_user_context(context_type, tool_context)
         
-        # Also search memory for related conversations using ADK's load_memory
-        memory_query = f"{context_type} guidance conversations goals challenges"
-        try:
-            memory_results = load_memory(memory_query, tool_context)
-        except Exception as e:
-            logger.warning(f"Memory search failed: {e}")
-            memory_results = []
+        # Note: For memory search, the agent should use the load_memory tool directly
+        # This preload function prepares context but doesn't search memory
+        # The agent will call load_memory separately if needed
+        memory_results = []  # Agent will search memory using load_memory tool
         
         # Store preloaded context marker
         tool_context.state[f"temp:preloaded_{context_type}"] = True
